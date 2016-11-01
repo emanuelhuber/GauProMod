@@ -196,7 +196,7 @@ covModel <- list(kernel="matern",
                  h = 2.45)    # std. deviation
 
 # squared exponential kernel (Gaussian)
-covModel <- list(kernel="se",
+covModel <- list(kernel="gaussian",
                  l = 0.5,   # correlation length
                  h = 0.25)  # std. deviation
 ```
