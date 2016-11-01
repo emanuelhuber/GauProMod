@@ -90,10 +90,3 @@ Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd> K,
   					        Rcpp::Named("logLik3") = logLik3);
 }
 
-// http://lists.r-forge.r-project.org/pipermail/rcpp-devel/2014-June/007781.html
-// Statistics & Software Consulting
-// GKX Group, GKX Associates Inc.
-// tel: 1-877-GKX-GROUP
-// email: ggrothendieck at gmail.com
-
-

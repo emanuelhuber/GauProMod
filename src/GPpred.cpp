@@ -44,11 +44,3 @@ Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd> K,
 						    Rcpp::Named("logLik1") = logLik1,
 						    Rcpp::Named("logLik2") = logLik2);
 }
-
-// http://lists.r-forge.r-project.org/pipermail/rcpp-devel/2014-June/007781.html
-// Statistics & Software Consulting
-// GKX Group, GKX Associates Inc.
-// tel: 1-877-GKX-GROUP
-// email: ggrothendieck at gmail.com
-
-

@@ -715,6 +715,12 @@ se <- function(x, y, covModel, d = 0, w = 1){
   kGaussian(r, covModel, d, w)
 }
 
+#' @export
+kSe <- function(x, y, covModel, d = 0, w = 1){
+  warning("Deprecated function! Use 'kGaussian' instead!\n")
+  kGaussian(r, covModel, d, w)
+}
+
 #' Kernels (covariance functions) for Gaussian process
 #'
 #' Squared Exponential Covariance Function (or radial basis or Gaussian)
