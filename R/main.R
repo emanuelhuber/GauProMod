@@ -518,13 +518,19 @@ invm <- function(x){
 # dx = ?
 #' Covariance matrix
 #'
-#' Create a covariance matrix according to the model
+#' Create a covariance matrix according to the kernel parametrisation
 #' @name covm
 #' @export
 covm <- function(x, y, covModel, d = 0, dx = 1, ...){
-#   outer(x,y, covModel$type,covModel)
-  if(covModel$type == "linear"){
-    do.call(covModel$type, list(x, y, covModel, d = d, w = 1, ...))
+#   outer(x,y, covModel$kernel,covModel)
+  if(length(covModel$type) == 1 && length(covModel$kernel) == 0){
+    covModel[["kernel"]] <- covModel$type
+    warning("In covModel, rename 'type' into 'kernel'.\n")
+  }
+  if(covModel$kernel == "linear"){
+    kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
+                         substr(covModel$kernel,2,nchar(covModel$kernel)) )
+    do.call(kernelName, list(x, y, covModel, d = d, w = 1, ...))
   }else{
     if(is.null(dim(x))){
         XY <- outer(x, y, function(x, y){ sqrt((x - y)^2)})
@@ -571,14 +577,20 @@ covm <- function(x, y, covModel, d = 0, dx = 1, ...){
     }else{
       w = 1
     }
-    do.call(covModel$type, list(XY, covModel, d = d, w = w, ...))
+    kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
+                         substr(covModel$kernel,2,nchar(covModel$kernel)) )
+    do.call(kernelName, list(XY, covModel, d = d, w = w, ...))
   }
 }
 
 
 ##--- COVARIANCE MATRIX
 covmOld <- function(x, y, covModel, d = 0, dx = 1, ddx = 1, ...){
-#   outer(x,y, covModel$type,covModel)
+  if(length(covModel$type) == 1 && length(covModel$kernel) == 0){
+    covModel[["kernel"]] <- covModel$type
+    warning("In covModel, rename 'type' into 'kernel'.\n")
+  }
+#   outer(x,y, covModel$kernel,covModel)
     if(is.null(dim(x))){
         XY <- outer(x, y, function(x, y){ sqrt((x - y)^2)})
     }else if(dim(x)[2] == 2){
@@ -652,7 +664,9 @@ covmOld <- function(x, y, covModel, d = 0, dx = 1, ddx = 1, ...){
     }else{
       w = 1
     }
-    do.call(covModel$type, list(XY, covModel, d = d, w = w, ...))
+  kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
+                       substr(covModel$kernel,2,nchar(covModel$kernel)) )
+  do.call(kernelName, list(XY, covModel, d = d, w = w, ...))
 }
 
 sign2 <- function(x){
@@ -661,7 +675,11 @@ sign2 <- function(x){
 
 
 dcovm <- function(x, y, covModel, ...){
-# 	outer(x,y, covModel$type,covModel)
+  if(length(covModel$type) == 1 && length(covModel$kernel) == 0){
+    covModel[["kernel"]] <- covModel$type
+    warning("In covModel, rename 'type' into 'kernel'.\n")
+  }
+# 	outer(x,y, covModel$kernel,covModel)
 	if(is.null(dim(x))){
 		XY <- outer(x, y, "-")
 	}else if(dim(x)[2] == 2){
@@ -670,7 +688,9 @@ dcovm <- function(x, y, covModel, ...){
 		XY <- distn(x,y)
 
 	}
-	do.call(covModel$type, list(XY, covModel,  ...))
+  kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
+                       substr(covModel$kernel,2,nchar(covModel$kernel)) )
+  do.call(kernelName, list(XY, covModel,  ...))
 }
 
 distn <- function(X, Y){
@@ -689,15 +709,22 @@ dist2 <- function(X,Y){
 }
 
 
-#' Squared Exponential Covariance Function
+#' @export
+se <- function(x, y, covModel, d = 0, w = 1){
+  warning("Deprecated function! Use 'kGaussian' instead!\n")
+  kGaussian(r, covModel, d, w)
+}
+
+#' Kernels (covariance functions) for Gaussian process
 #'
 #' Squared Exponential Covariance Function (or radial basis or Gaussian)
 #' over-smoothness, infinitely differentiable at h=0
-#' @name se
+#' @name kernels
+#' @rdname kernels
 #' @export
-se <- function(r, covModel, d = 0, w = 1){
-	l <- covModel$l
-	h <- covModel$h
+kGaussian <- function(r, para, d = 0, w = 1){
+	l <- para$l
+	h <- para$h
 	u <- -0.5 * (r / l)^2
     K <-  exp(u)
     K[abs(u) < .Machine$double.eps^0.5] <- 1
@@ -722,14 +749,19 @@ se <- function(r, covModel, d = 0, w = 1){
 	return(K)
 }
 
-#' linear covariance matrix
-#'
-#' @name linear
 #' @export
 linear <- function(x, y, covModel, d = 0, w = 1){
-  b <- covModel$b
-  h <- covModel$h
-  cc <- covModel$c
+  warning("Deprecated function! Use 'kLinear' instead!\n")
+  kLinear(r, covModel, d, w)
+}
+
+#' @name kLinear
+#' @rdname kernels
+#' @export
+kLinear <- function(x, y, para, d = 0, w = 1){
+  b <- para$b
+  h <- para$h
+  cc <- para$c
   XY <- outer((x - cc), (y - cc), "*")
   K <- XY * h^2 + b^2
 }
@@ -740,6 +772,11 @@ linear <- function(x, y, covModel, d = 0, w = 1){
 #   C = ss.*(1 + ha.^2).^(-m.alpha);
 # }
 
+#' @export
+matern <- function(r, covModel, d = 0, w = 1){
+  warning("Deprecated function! Use 'kMatern' instead!\n")
+  kMatern(r, covModel, d, w)
+}
 
 # MATERN
 # adjustable smoothness via parameter v
@@ -747,14 +784,16 @@ linear <- function(x, y, covModel, d = 0, w = 1){
 # C. E. Rasmussen & C. K. I. Williams, Gaussian Processes for Machine Learning,
 # the MIT Press, 2006, ISBN 026218253X. c 2006
 # Massachusetts Institute of Technology. www.GaussianProcess.org/gpml
-#' Matern covariance matrix
-#'
-#' @name matern
+# Matern covariance matrix
+
+
+#' @name kMatern
+#' @rdname kernels
 #' @export
-matern <- function(r, covModel, d = 0, w = 1){
-  l <- covModel$l
-  v <- covModel$v
-  h <- covModel$h
+kMatern <- function(r, para, d = 0, w = 1){
+  l <- para$l
+  v <- para$v
+  h <- para$h
   u <-  r /l
   if(d == 0){
     if( v == 1/2 ){

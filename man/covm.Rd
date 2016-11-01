@@ -7,6 +7,6 @@
 covm(x, y, covModel, d = 0, dx = 1, ...)
 }
 \description{
-Create a covariance matrix according to the model
+Create a covariance matrix according to the kernel parametrisation
 }
 

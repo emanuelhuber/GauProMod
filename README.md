@@ -52,19 +52,19 @@ targ <- list("x"=seq(-10,10,len=200))
 To build the covariance functions, the following kernels are available
 ```r
 # linear kernel
-covModel <- list(type="linear",
+covModel <- list(kernel="linear",
                  b = 1,         # slope
                  h = 1.5,       # std. deviation
                  c = 0)         # constant
                  
 # Matern kernel
-covModel <- list(type="matern",
+covModel <- list(kernel="matern",
                  l = 1,       # correlation length
                  v = 2.5,     # smoothness
                  h = 2.45)    # std. deviation
 
 # squared exponential kernel (Gaussian)
-covModel <- list(type="se",
+covModel <- list(kernel="se",
                  l = 0.5,   # correlation length
                  h = 0.25)  # std. deviation
 ```
@@ -184,19 +184,19 @@ To build the covariance functions, the same kernels as in the previously
 defined are available:
 ```r
 # linear kernel
-covModel <- list(type="linear",
+covModel <- list(kernel="linear",
                  b = 1,         # slope
                  h = 1.5,       # std. deviation
                  c = 0)         # constant
                  
 # Matern kernel
-covModel <- list(type="matern",
+covModel <- list(kernel="matern",
                  l = 1,       # correlation length
                  v = 2.5,     # smoothness
                  h = 2.45)    # std. deviation
 
 # squared exponential kernel (Gaussian)
-covModel <- list(type="se",
+covModel <- list(kernel="se",
                  l = 0.5,   # correlation length
                  h = 0.25)  # std. deviation
 ```
