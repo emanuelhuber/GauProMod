@@ -1,0 +1,17 @@
+Package: GauProMod
+Type: Package
+Title: Gaussian Process Modelling
+Version: 0.1
+Date: 2016-11-01
+Author: Emanuel Huber
+Maintainer: Emanuel Huber <emanuel.huber@alumni.ethz.ch>
+Description: A package for conditional and unconditional Gaussian
+    Process Modelling (GauProMod).
+License: What license is it under?
+LazyData: TRUE
+LinkingTo: Rcpp, RcppEigen
+Imports:
+    Rcpp,
+    RcppEigen,
+    FastGP
+RoxygenNote: 5.0.1
