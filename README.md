@@ -114,7 +114,7 @@ xm <-(para$mean - sqrt(diag(para$cov)))  # mean - sd
 
 # initialise the plot
 plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
-     xlim = range(c(obs$x, targ$x)), ylim = range(c(x95, x05, obs$y)),
+     xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
      pch = 20, col = "black") 
 lines(para$xstar, para$mean,col="red")  # mean
 lines(para$xstar, xm,lty=3)            # + sd
@@ -163,7 +163,7 @@ x/y coordinates).
 obs <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31, 
                        3.74, 5.93, 7.19, 6.61, 5.54, 2.27, 1.61, 4.02, 1.06),
                      c(1.33, 7.24, 4.26, 2.67, 6.17, 8.04, 3.18, 5.63, 8.33,
-                       6.34, 3.68, 6.82, 1.79, 8.60, 7.73, 5.35, 2.45, 4.92)
+                       6.34, 3.68, 6.82, 1.79, 8.60, 7.73, 5.35, 2.45, 4.92)),
             y = c(2.60, 1.48, 1.36, 8.61, 1.00, 1.58, 8.42, 8.39, 1.50, 
                   9.05, 1.14, 1.49, 9.19, 1.32, 1.03, 6.41, 6.16, 5.42))
 ```
@@ -272,6 +272,7 @@ points(obs$x, col="white",pch=3)
 
 plot3D::contour2D(x = vx, y = vy, Ysim)
 points(obs$x, col="black",pch=3)
+rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 ```
 
 
