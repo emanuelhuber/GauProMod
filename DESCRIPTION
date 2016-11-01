@@ -3,11 +3,13 @@ Type: Package
 Title: Gaussian Process Modelling
 Version: 0.1
 Date: 2016-11-01
-Author: Emanuel Huber
+Authors@R: c(
+  person("Emanuel", "Huber", email = "emanuel.huber@alumni.ethz.ch",
+  role = c("aut", "cre"))
 Maintainer: Emanuel Huber <emanuel.huber@alumni.ethz.ch>
 Description: A package for conditional and unconditional Gaussian
     Process Modelling (GauProMod).
-License: What license is it under?
+License:  MIT License
 LazyData: TRUE
 Collate:
 	'RcppExports.R'
