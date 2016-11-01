@@ -716,9 +716,9 @@ se <- function(x, y, covModel, d = 0, w = 1){
 }
 
 #' @export
-kSe <- function(x, y, covModel, d = 0, w = 1){
+kSe <- function(r, covModel, d = 0, w = 1){
   warning("Deprecated function! Use 'kGaussian' instead!\n")
-  kGaussian(r, covModel, d, w)
+  kGaussian(r = r, para = covModel, d = d, w = w)
 }
 
 #' Kernels (covariance functions) for Gaussian process
@@ -758,7 +758,7 @@ kGaussian <- function(r, para, d = 0, w = 1){
 #' @export
 linear <- function(x, y, covModel, d = 0, w = 1){
   warning("Deprecated function! Use 'kLinear' instead!\n")
-  kLinear(r, covModel, d, w)
+  kLinear(x = x, y = y, para = covModel, d = d, w = w)
 }
 
 #' @name kLinear
@@ -781,7 +781,7 @@ kLinear <- function(x, y, para, d = 0, w = 1){
 #' @export
 matern <- function(r, covModel, d = 0, w = 1){
   warning("Deprecated function! Use 'kMatern' instead!\n")
-  kMatern(r, covModel, d, w)
+  kMatern(r = r, para = covModel, d = d, w = w)
 }
 
 # MATERN
