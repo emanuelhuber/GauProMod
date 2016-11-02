@@ -60,15 +60,12 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
 
   # if there are derivative
   if(!is.null(bc)){
-    # Kdxx <- covm(obs$x, bc$x, covModels[[1]] , d = 1, dx = bc$v)
-    Kdxx <- covm(obs$x, bc$x, covModels[[1]] , d = 1, dx = bc$y)
-    # Kdxdx <- covm(bc$x, bc$x, covModels[[1]] , d = 2, dx = bc$v)
-    Kdxdx <- covm(bc$x, bc$x, covModels[[1]] , d = 2, dx = bc$y)
+    Kdxx <- covm(obs$x, bc$x, covModels[[1]] , d = 1, dx = bc$v)
+    Kdxdx <- covm(bc$x, bc$x, covModels[[1]] , d = 2, dx = bc$v)
     sigma <- c(sigma, rep(bc$sigma, ncol(Kdxx)))
     Kxx  <- rbind(cbind(   Kxx,  Kdxx ),
                   cbind(t(-Kdxx), Kdxdx))
-    # Kdxstar <- covm(targ$x, bc$x, covModels[[1]] , d = 1, dx=bc$v)
-    Kdxstar <- covm(targ$x, bc$x, covModels[[1]] , d = 1, dx=bc$y)
+    Kdxstar <- covm(targ$x, bc$x, covModels[[1]] , d = 1, dx=bc$v)
     Kstar   <- rbind(Kstar, t(Kdxstar))
     y <- c(y, bc$y)
   }
@@ -127,12 +124,10 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
 #         H <- matrix(rep((H0), nt), nrow = nrow(H0), byrow = FALSE)
 #         dim(H) = 3 x 30
 #         dim(Hdx) = 3 x 5
-        # Hdx <- Hmat(bc$x[rep(seq_len(nbc), each=nt),], op, dx = bc$v)
-        Hdx <- Hmat(bc$x[rep(seq_len(nbc), each=nt),], op, dx = bc$y)
+        Hdx <- Hmat(bc$x[rep(seq_len(nbc), each=nt),], op, dx = bc$v)
         H <- cbind(H, Hdx)
       }else{
-        # Hdx <- Hmat(bc$x, op, dx = bc$v)
-        Hdx <- Hmat(bc$x, op, dx = bc$y)
+        Hdx <- Hmat(bc$x, op, dx = bc$v)
         H <- cbind(H, (Hdx))
       }
     }
