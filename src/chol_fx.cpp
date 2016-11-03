@@ -1,6 +1,7 @@
 // To run:  library(Rcpp); sourceCpp("backsolve_eigen_test.cpp")
 // Backsolve triangular lower
 // [[Rcpp::depends(RcppEigen)]]
+//#include <Rcpp.h>
 #include <RcppEigen.h>
 
 using namespace Eigen;
