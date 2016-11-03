@@ -4,25 +4,6 @@
 #' @importFrom Rcpp sourceCpp
 NULL
 
-#require(Rcpp)
-#require(FastGP)
-#require(RcppEigen)
-
-
-#sourceCpp("src/cholupdateL.cpp")
-#sourceCpp("src/GPpred.cpp")
-#sourceCpp("src/GPpredmean.cpp")
-
-
-# sourceCpp("cholnew.cpp")
-
-#------- poubelle --------#
-# sourceCpp("tHKHsolve.cpp")
-# sourceCpp("backsolve.cpp")
-# sourceCpp("forwardsolve.cpp")
-# sourceCpp("forbackwardsolve.cpp")
-# sourceCpp("forbackwardsolve2.cpp")
-
 # observations:
 # obs = list("x" = position,
 # 			 "t" = time (optional),
@@ -200,7 +181,7 @@ gpCondOld <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL){
 #' @export
 cholfac <- function(x){
 #   return(cholnew_rcpp(x))
-  return(FastGP::rcppeigen_get_chol(x))
+  return(cholfac_rcpp(x))
 }
 
 #
@@ -245,7 +226,7 @@ gpSim <- function(A, L = NULL, n = 1){
     ystar <-  try(mvrnorm2(n, A$mean, A$cov),silent=TRUE)
     if(class(ystar) == "try-error"){
       cat("Error with Cholesky decomposition...\n")
-      ystar <-  mvrnorm(n, A$mean, A$cov)
+      ystar <-  MASS::mvrnorm(n, A$mean, A$cov)
     }
   }else{
     p <- length(A$mean)
@@ -296,7 +277,7 @@ setPosTime <-function(xy, tt, val, xystar){
 mvrnorm2 <- function(n, mu, Sigma){
 	p <- length(mu)
 # 	cholStatus <- try(SChol <- chol(Sigma),silent=TRUE)
-	cholStatus <- try(SChol <- FastGP::rcppeigen_get_chol(Sigma),silent=TRUE)
+	cholStatus <- try(SChol <- cholfac_rcpp(Sigma),silent=TRUE)
 	cholError <- ifelse(class(cholStatus) == "try-error", TRUE, FALSE)
 	if(cholError){
 	  cat("error\n")
@@ -498,9 +479,7 @@ vecGrid <- function(x,y){
 #' @export
 invm <- function(x){
 	cholx <- try(chol(x),silent=TRUE)
-# 	cholx <- try(FastGP::rcppeigen_get_chol(x),silent=TRUE)
 	if(class(cholx) == "try-error"){
-# 	  return(solve(x))
 	  cat("Error with the Cholesky decomposition\n")
 	  return(rcppeigen_invert_matrix(x))
 	}else{

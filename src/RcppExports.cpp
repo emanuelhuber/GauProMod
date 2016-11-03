@@ -7,44 +7,44 @@
 using namespace Rcpp;
 
 // cholupdateL_rcpp
-Eigen::MatrixXd cholupdateL_rcpp(const Eigen::Map<Eigen::MatrixXd> L, const Eigen::Map<Eigen::MatrixXd> V12, const Eigen::Map<Eigen::MatrixXd> V22);
+Eigen::MatrixXd cholupdateL_rcpp(const Eigen::Map<Eigen::MatrixXd>& L, const Eigen::Map<Eigen::MatrixXd>& V12, const Eigen::Map<Eigen::MatrixXd>& V22);
 RcppExport SEXP GauProMod_cholupdateL_rcpp(SEXP LSEXP, SEXP V12SEXP, SEXP V22SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type V12(V12SEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type V22(V22SEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type V12(V12SEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type V22(V22SEXP);
     rcpp_result_gen = Rcpp::wrap(cholupdateL_rcpp(L, V12, V22));
     return rcpp_result_gen;
 END_RCPP
 }
 // GPpred_rcpp
-Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd> K, const Eigen::Map<Eigen::MatrixXd> Kstar, const Eigen::Map<Eigen::MatrixXd> Kstarstar, const Eigen::Map<Eigen::MatrixXd> y);
+Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::MatrixXd>& y);
 RcppExport SEXP GauProMod_GPpred_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Kstar(KstarSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Kstarstar(KstarstarSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstar(KstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstarstar(KstarstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(GPpred_rcpp(K, Kstar, Kstarstar, y));
     return rcpp_result_gen;
 END_RCPP
 }
 // GPpredmean_rcpp
-Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd> K, const Eigen::Map<Eigen::MatrixXd> Kstar, const Eigen::Map<Eigen::MatrixXd> Kstarstar, const Eigen::Map<Eigen::VectorXd> y, const Eigen::Map<Eigen::MatrixXd> H, const Eigen::Map<Eigen::MatrixXd> Hstar);
+Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::VectorXd>& y, const Eigen::Map<Eigen::MatrixXd>& H, const Eigen::Map<Eigen::MatrixXd>& Hstar);
 RcppExport SEXP GauProMod_GPpredmean_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP, SEXP HSEXP, SEXP HstarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Kstar(KstarSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Kstarstar(KstarstarSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd> >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type H(HSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Hstar(HstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstar(KstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstarstar(KstarstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type H(HSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Hstar(HstarSEXP);
     rcpp_result_gen = Rcpp::wrap(GPpredmean_rcpp(K, Kstar, Kstarstar, y, H, Hstar));
     return rcpp_result_gen;
 END_RCPP

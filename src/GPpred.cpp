@@ -10,10 +10,10 @@ using namespace Eigen;
 
 // [[Rcpp::export]]
 
-Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd> K, 
-                       const Eigen::Map<Eigen::MatrixXd> Kstar, 
-                       const Eigen::Map<Eigen::MatrixXd> Kstarstar, 
-                       const Eigen::Map<Eigen::MatrixXd> y) { 
+Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, 
+                       const Eigen::Map<Eigen::MatrixXd>& Kstar, 
+                       const Eigen::Map<Eigen::MatrixXd>& Kstarstar, 
+                       const Eigen::Map<Eigen::MatrixXd>& y) { 
       
   int n = K.rows();
   int kk = Kstarstar.cols();
@@ -40,7 +40,7 @@ Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd> K,
   logLik1 = 0.5 * a.adjoint() * a;
   logLik2 = L.diagonal();
   return Rcpp::List::create(Rcpp::Named("mean") = M,
-  					  		Rcpp::Named("cov") = C,
-						    Rcpp::Named("logLik1") = logLik1,
-						    Rcpp::Named("logLik2") = logLik2);
+  					  		          Rcpp::Named("cov") = C,
+						                Rcpp::Named("logLik1") = logLik1,
+						                Rcpp::Named("logLik2") = logLik2);
 }

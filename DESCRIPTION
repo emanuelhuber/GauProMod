@@ -23,6 +23,5 @@ Depends:
 LinkingTo: Rcpp, RcppEigen
 Imports:
     Rcpp,
-    RcppEigen,
-    FastGP
+    RcppEigen
 RoxygenNote: 5.0.1

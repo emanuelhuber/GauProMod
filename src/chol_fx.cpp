@@ -6,9 +6,9 @@
 using namespace Eigen;
 
 // [[Rcpp::export]]
-Eigen::MatrixXd cholupdateL_rcpp(const Eigen::Map<Eigen::MatrixXd> L, 
-                                 const Eigen::Map<Eigen::MatrixXd> V12, 
-                                 const Eigen::Map<Eigen::MatrixXd> V22) { 
+Eigen::MatrixXd cholupdateL_rcpp(const Eigen::Map<Eigen::MatrixXd>& L, 
+                                 const Eigen::Map<Eigen::MatrixXd>& V12, 
+                                 const Eigen::Map<Eigen::MatrixXd>& V22) { 
       
   int k = L.rows();
   int k2 = V22.rows();
@@ -27,5 +27,8 @@ Eigen::MatrixXd cholupdateL_rcpp(const Eigen::Map<Eigen::MatrixXd> L,
   return Lup;
 }
 
-
+Eigen::MatrixXd cholfac_rcpp(const Eigen::Map<Eigen::MatrixXd>& A){
+  Eigen::MatrixXd L = A.llt().matrixL();
+  return L;
+}
 

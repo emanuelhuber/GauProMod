@@ -8,12 +8,12 @@ using namespace Eigen;
 
 // [[Rcpp::export]]
 
-Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd> K, 
-                           const Eigen::Map<Eigen::MatrixXd> Kstar, 
-                           const Eigen::Map<Eigen::MatrixXd> Kstarstar, 
-                           const Eigen::Map<Eigen::VectorXd> y, 
-                           const Eigen::Map<Eigen::MatrixXd> H, 
-                           const Eigen::Map<Eigen::MatrixXd> Hstar) { 
+Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, 
+                           const Eigen::Map<Eigen::MatrixXd>& Kstar, 
+                           const Eigen::Map<Eigen::MatrixXd>& Kstarstar, 
+                           const Eigen::Map<Eigen::VectorXd>& y, 
+                           const Eigen::Map<Eigen::MatrixXd>& H, 
+                           const Eigen::Map<Eigen::MatrixXd>& Hstar) { 
       
   int m = K.rows();			// m observations
   int n = Kstarstar.cols();	// n targets
@@ -84,9 +84,9 @@ Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd> K,
 
 
   return Rcpp::List::create(Rcpp::Named("mean") = M,
-  					        Rcpp::Named("cov") = C,
-  					        Rcpp::Named("logLik1") = logLik1,
-  					        Rcpp::Named("logLik2") = logLik2,
-  					        Rcpp::Named("logLik3") = logLik3);
+  					                Rcpp::Named("cov") = C,
+  					                Rcpp::Named("logLik1") = logLik1,
+  					                Rcpp::Named("logLik2") = logLik2,
+  					                Rcpp::Named("logLik3") = logLik3);
 }
 
