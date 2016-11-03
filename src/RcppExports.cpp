@@ -19,6 +19,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cholfac_rcpp
+Eigen::MatrixXd cholfac_rcpp(const Eigen::Map<Eigen::MatrixXd>& A);
+RcppExport SEXP GauProMod_cholfac_rcpp(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(cholfac_rcpp(A));
+    return rcpp_result_gen;
+END_RCPP
+}
 // GPpred_rcpp
 Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::MatrixXd>& y);
 RcppExport SEXP GauProMod_GPpred_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP) {

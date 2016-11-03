@@ -27,6 +27,8 @@ Eigen::MatrixXd cholupdateL_rcpp(const Eigen::Map<Eigen::MatrixXd>& L,
   return Lup;
 }
 
+
+// [[Rcpp::export]]
 Eigen::MatrixXd cholfac_rcpp(const Eigen::Map<Eigen::MatrixXd>& A){
   Eigen::MatrixXd L = A.llt().matrixL();
   return L;
