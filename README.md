@@ -1,3 +1,6 @@
+---
+output: html_document
+---
 # GauProMod
 R functions for Gaussian process (GP) modelling. The core functions are coded 
 in C++ and based on the EIGEN library (through RcppEigen)
@@ -96,29 +99,29 @@ sigma <- 0.2
 #### Conditional Gaussian Process modelling
 
 ```r
-para <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
-names(para)
-# para$mean   = mean value at location xstar
-# para$cov    = covariance matrix of the conditioned GP
-# para$logLik = log-likelihood of the conditioned GP
-# para$xstar  = x-coordinates at which the GP is simulated
+names(GP)
+# GP$mean   = mean value at location xstar
+# GP$cov    = covariance matrix of the conditioned GP
+# GP$logLik = log-likelihood of the conditioned GP
+# GP$xstar  = x-coordinates at which the GP is simulated
 ```
 
 Plot the mean function plus/minus the standard deviation
 
 ```r
 #--- plot mean +/- sd
-xp <-(para$mean + sqrt(diag(para$cov)))  # mean + sd
-xm <-(para$mean - sqrt(diag(para$cov)))  # mean - sd
+xp <-(GP$mean + sqrt(diag(GP$cov)))  # mean + sd
+xm <-(GP$mean - sqrt(diag(GP$cov)))  # mean - sd
 
 # initialise the plot
 plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
      xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
      pch = 20, col = "black") 
-lines(para$xstar, para$mean,col="red")  # mean
-lines(para$xstar, xm,lty=3)            # + sd
-lines(para$xstar, xp,lty=3)            # - sd
+lines(GP$xstar, GP$mean,col="red")  # mean
+lines(GP$xstar, xm,lty=3)            # + sd
+lines(GP$xstar, xp,lty=3)            # - sd
 legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 3, 1),
        pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
 ```
@@ -127,13 +130,13 @@ Random conditional simulation
 
 ```r
 # cholesky factorisation
-L <- cholfac(para$cov)
+L <- cholfac(GP$cov)
 # random simulation
-ystar <- gpSim(para , L = L)
+ystar <- gpSim(GP , L = L)
 ```
 
-You can also directly use `ystar <- gpSim(para)` without the argument `L` (the
-Cholesky factor) but each time you will call `gpSim(para)`, `gpSim` will 
+You can also directly use `ystar <- gpSim(GP)` without the argument `L` (the
+Cholesky factor) but each time you will call `gpSim(GP)`, `gpSim` will 
 compute again internally the Cholesky factor. So, if you plan to run many 
 unconditional simulations, it is faster to first compute the Cholesky factor
 and then run several time `gpSim` with the argument `L`.
@@ -152,6 +155,8 @@ To understand everything, please read the previous section ("1D Gaussian
 Process Modelling").
 
 #### Observations and  target
+The observations are defined by a list with `x` the positions of the 
+observations and `y` the observed values. 
 Here, the element `x` of the observation list is a matrix corresponding to
 the coordinates of the observations points (East/North coordinates or 
 x/y coordinates).
@@ -221,48 +226,49 @@ sigma <- 0.2
 #### Conditional Gaussian Process modelling
 
 ```r
-para <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
-names(para)
-# para$mean   = mean value at location xstar
-# para$cov    = covariance matrix of the conditioned GP
-# para$logLik = log-likelihood of the conditioned GP
-# para$xstar  = x-coordinates at which the GP is simulated
+names(GP)
+# GP$mean   = mean value at location xstar
+# GP$cov    = covariance matrix of the conditioned GP
+# GP$logLik = log-likelihood of the conditioned GP
+# GP$xstar  = x-coordinates at which the GP is simulated
 ```
 
-Plot the mean function 
+Plot the mean and standard deviation functions
 ```r
-Ymean <- matrix(para$mean, nrow = length(vx), ncol = length(vy), byrow = TRUE)
-
+# mean
+Ymean <- matrix(GP$mean, nrow = length(vx), ncol = length(vy), byrow = TRUE)
+# standard deviation
+YSD <- matrix(sqrt(diag(GP$cov)), nrow = length(vx), ncol = length(vy), 
+              byrow = TRUE)
+              
+par(mfrow = c(2,2))
 plot3D::image2D(x = vx, y = vy, z = Ymean)
 points(obs$x, col="white",pch=3)
-
+title(main = "mean")
 
 plot3D::contour2D(x = vx, y = vy, Ymean)
 points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
-```
+title(main = "mean")
 
-Plot the standard deviation
-
-```r
-YSD <- matrix(sqrt(diag(para$cov)), nrow = length(vx), ncol = length(vy), 
-              byrow = TRUE)
-              
 plot3D::image2D(x = vx, y = vy, z = YSD)
 points(obs$x, col="white",pch=3)
-
+title(main = "standard deviation")
 
 plot3D::contour2D(x = vx, y = vy, YSD)
 points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
+title(main = "standard deviation")
 ```
+
        
 Random conditional simulation
 
 ```r
-L <- cholfac(para$cov)
-ystar <- gpSim(para , L = L)
+L <- cholfac(GP$cov)
+ystar <- gpSim(GP , L = L)
 
 Ysim <- matrix(ystar[,3], nrow = length(vx), ncol = length(vy), byrow = TRUE)
 
@@ -275,6 +281,152 @@ points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 ```
 
+
+### Space-time Gaussian Process Modelling
+
+To understand everything, please read the previous sections.
+
+#### Observations and  target
+The observations are defined by a list with `x` the positions of the 
+observations, `y` the observed time-series and `t` the time scale. Note that all
+the time-series must have the same time scale.
+Here, the element `x` of the observation list is a matrix corresponding to
+the coordinates of the observations points (East/North coordinates or 
+x/y coordinates).
+
+The element `y` is a big vector constiting of all the time-series recorded
+at the positions defined by element `x` put one after another. For example, 
+consider 5 monitoring stations with positions x~1~, x~2~, x~3~, x~4~ and x~5~. 
+At each station, a time-series was recorded:
+
+* at station 1: **y**~1~ = y~1,1~, y~1,2~, ..., y~1,t~
+* at station 2: **y**~2~ = y~2,1~, y~2,2~, ..., y~2,t~
+* ...
+* at station 5: **y**~5~ = y~5,1~, y~5,2~, ..., y~5,t~
+
+Then, the element `y` is set to c(**y**~1~, **y**~2~, **y**~3~, **y**~4~, 
+**y**~5~).
+
+Assuming that the data were recorded every hour, the time scale `t` is simply
+1, 2, 3, ..., t.
+
+
+```r
+#observations
+obs <- list(x = cbind(c(2, 8, 1, 3, 5),
+                      c(9, 2, 3, 4, 6)),
+            y = c(1:10 + rnorm(10, 0, 0.1),
+                  1:10 + rnorm(10, -0.5, 0.1),
+                  1:10 + rnorm(10, 1, 0.4),
+                  1:10 + rnorm(10, -0.5, 0.2),
+                  1:10 + rnorm(10, 0, 0.1)),
+            t = seq_len(10))
+```
+
+The target is defined by a regular grid defined by two orthogonal vectors.
+The function `vecGrid`returns a two-columns matrix corresponding to the
+coordinates of each element of the grid. For each element of the grid, 
+the Gaussian process simulate a time-series whose time scale is identical
+to that of the observations.
+
+```r
+# targets
+vx <- seq(0, 10, by = 0.5)
+vy <- seq(0, 10, by = 0.5)
+targ <- list(x = vecGrid(vx, vy))
+```
+
+#### Covariance function, mean function and likelihood
+Two covariance are defined, one for the space domain (element `pos`) and one
+for the time domain (element `time`). For the moment, the covariance function of
+the space-time Gaussian process is defined by the product of the spatial and
+temporal kernel.
+
+```r
+covModels <- list(pos =  list(kernel="matern",
+                              l = 4,       # correlation length
+                              v = 2.5,     # smoothness
+                              h = 2.45),    # std. deviation
+                  time = list(kernel="gaussian",
+                              l = 0.15,   # correlation length
+                              h = 1.25))
+```
+
+2D mean linear mean function 
+```r
+op <- 2
+```
+
+Standard deviation (measurement error):
+```r
+# Gaussian likelihood
+sigma <- 0.2
+```
+
+#### Conditional Gaussian Process modelling
+
+```r
+GP <- gpCond(obs = obs, targ = targ, covModels = covModels, 
+               sigma = sigma, op = op)
+names(GP)
+# GP$mean   = mean value at location xstar
+# GP$cov    = covariance matrix of the conditioned GP
+# GP$logLik = log-likelihood of the conditioned GP
+# GP$xstar  = x-coordinates at which the GP is simulated
+```
+
+The mean values are re-organised into a three-dimensional array of dimension
+$n_t \times n_x \times n_y, with $n_t$ the number of time-step, and 
+$n_x \times n_y$ the dimension of the (spatial) target grid.
+
+```r
+Ymean <-  array(GP$mean, dim=c(length(obs$t), length(vx), length(vy)))
+Ysd <-  array(sqrt(diag(GP$cov)), dim=c(length(obs$t), length(vx), length(vy)))
+
+par(mfrow = c(2,5))
+for(i in seq_len(10)){
+  plot3D::image2D(z = Ymean[i,,], x = vx, y = vy, zlim = range(Ymean), 
+                  main = "mean")
+  points(obs$x, col="white",pch=20, cex=2)
+  points(obs$x, col="black",pch=3)
+}
+
+par(mfrow = c(2,5))
+for(i in seq_len(10)){
+  plot3D::image2D(z = Ysd[i,,], x = vx, y = vy, zlim = range(Ysd), 
+                  main = "standard deviation")
+  points(obs$x, col="white",pch=20, cex=2)
+  points(obs$x, col="black",pch=3)
+}
+```
+
+       
+Random conditional simulation. La function `gpSim` returns a matrix whose two first column correspond to the position coordinate, the third columns 
+corresponds to the time scale and the fourth column to the simulated Gaussian
+process.
+
+```r
+L <- cholfac(GP$cov)
+ystar <- gpSim(GP , L = L)
+
+colnames(ystar) <- c("x1", "x2", "t", "y")
+
+Ysim <- array(ystar[,"y"], dim=c(length(obs$t), length(vx), length(vy)))
+
+par(mfrow = c(2,5))
+for(i in seq_len(10)){
+  plot3D::image2D(z = Ysim[i,,], x = vx, y = vy,
+                  zlim = range(ystar[,"y"]), main = "simulation")
+  points(obs$x, col="white",pch=20, cex=2)
+  points(obs$x, col="black",pch=3)
+}
+```
+
+Time-series at location (4,1):
+```r
+par(mfrow = c(1,1))
+plot(Ysim[,vx == 4, vy == 1], type = "l", xlab = "time", ylab = "value")
+```
 
 ## References
 Rasmussen C.E. and Williams C.K.I. (2006), Gaussian Processes for Machine 
