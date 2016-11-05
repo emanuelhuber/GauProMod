@@ -188,8 +188,8 @@ defined are available:
 # linear kernel
 covModel <- list(kernel="linear",
                  b = 1,         # slope
-                 h = 1.5,       # std. deviation
-                 c = 0)         # constant
+                 h = 0.5,       # std. deviation
+                 c = 1)         # constant
                  
 # Matern kernel
 covModel <- list(kernel="matern",
@@ -208,10 +208,10 @@ Note that the 2D mean functions (or basis functions) are differently defined:
 ```r
 # 2D quadratic mean function
 op <- 5
-# 2D linear mean function
-op <- 2
 # zero-mean function (no trend)
 op <- 0 
+# 2D linear mean function
+op <- 2
 ```
 
 Standard deviation (measurement error):
@@ -241,20 +241,20 @@ YSD <- matrix(sqrt(diag(GP$cov)), nrow = length(vx), ncol = length(vy),
               byrow = TRUE)
               
 par(mfrow = c(2,2))
-plot3D::image2D(x = vx, y = vy, z = Ymean)
+plot3D::image2D(x = vx, y = vy, z = Ymean, asp=1)
 points(obs$x, col="white",pch=3)
 title(main = "mean")
 
-plot3D::contour2D(x = vx, y = vy, Ymean)
+plot3D::contour2D(x = vx, y = vy, Ymean, asp=1)
 points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 title(main = "mean")
 
-plot3D::image2D(x = vx, y = vy, z = YSD)
+plot3D::image2D(x = vx, y = vy, z = YSD, asp=1)
 points(obs$x, col="white",pch=3)
 title(main = "standard deviation")
 
-plot3D::contour2D(x = vx, y = vy, YSD)
+plot3D::contour2D(x = vx, y = vy, YSD, asp=1)
 points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 title(main = "standard deviation")
@@ -269,15 +269,113 @@ ystar <- gpSim(GP , L = L)
 
 Ysim <- matrix(ystar[,3], nrow = length(vx), ncol = length(vy), byrow = TRUE)
 
-plot3D::image2D(x = vx, y = vy, z = Ysim)
+par(mfrow=c(1,2))
+plot3D::image2D(x = vx, y = vy, z = Ysim, asp=1)
 points(obs$x, col="white",pch=3)
 
 
-plot3D::contour2D(x = vx, y = vy, Ysim)
+plot3D::contour2D(x = vx, y = vy, Ysim, asp=1)
 points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 ```
 
+#### Anisotropy (scaling only along the coordinates axes)
+
+```r
+covModelAni <- list(kernel="matern",
+                 l = 1,       # correlation length
+                 v = 2.5,     # smoothness
+                 h = 2.45,
+                 scale = c(1, 0.25))    # std. deviation
+# 2D linear mean function
+op <- 2
+
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModelAni), 
+               sigma = sigma, op = op)
+names(GP)
+# GP$mean   = mean value at location xstar
+# GP$cov    = covariance matrix of the conditioned GP
+# GP$logLik = log-likelihood of the conditioned GP
+# GP$xstar  = x-coordinates at which the GP is simulated
+```
+
+Plot the mean and standard deviation functions
+```r
+# mean
+YmeanAni <- matrix(GP$mean, nrow = length(vx), ncol = length(vy), byrow = TRUE)
+# standard deviation
+YSDAni <- matrix(sqrt(diag(GP$cov)), nrow = length(vx), ncol = length(vy), 
+              byrow = TRUE)
+              
+par(mfrow = c(2,2))
+plot3D::image2D(x = vx, y = vy, z = Ymean, asp = 1)
+points(obs$x, col="white",pch=3)
+title(main = "isotropic GP: mean ")
+
+plot3D::contour2D(x = vx, y = vy, Ymean, asp = 1)
+points(obs$x, col="black",pch=3)
+rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
+title(main = "isotropic GP: mean")
+
+plot3D::image2D(x = vx, y = vy, z = YmeanAni, asp = 1)
+points(obs$x, col="white",pch=3)
+title(main = "anisotropic GP: mean ")
+
+plot3D::contour2D(x = vx, y = vy, YmeanAni, asp = 1)
+points(obs$x, col="black",pch=3)
+rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
+title(main = "anisotropic GP: mean")
+```
+
+
+#### Anisotropy (scaling and roatation along the coordinates axes)
+
+```r
+covModelAni2 <- list(kernel="matern",
+                 l = 1,       # correlation length
+                 v = 2.5,     # smoothness
+                 h = 2.45,
+                 scale = c(1, 0.25),
+                 rot = c(1.0))    # std. deviation
+# 2D linear mean function
+op <- 2
+
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModelAni2), 
+               sigma = sigma, op = op)
+names(GP)
+# GP$mean   = mean value at location xstar
+# GP$cov    = covariance matrix of the conditioned GP
+# GP$logLik = log-likelihood of the conditioned GP
+# GP$xstar  = x-coordinates at which the GP is simulated
+```
+
+Plot the mean and standard deviation functions
+```r
+# mean
+YmeanAni2 <- matrix(GP$mean, nrow = length(vx), ncol = length(vy), byrow = TRUE)
+# standard deviation
+YSDAni2 <- matrix(sqrt(diag(GP$cov)), nrow = length(vx), ncol = length(vy), 
+              byrow = TRUE)
+              
+par(mfrow = c(2,2))
+plot3D::image2D(x = vx, y = vy, z = YmeanAni)
+points(obs$x, col="white",pch=3)
+title(main = "anisotropic GP (scale): mean ")
+
+plot3D::contour2D(x = vx, y = vy, YmeanAni)
+points(obs$x, col="black",pch=3)
+rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
+title(main = "anisotropic GP (scale): mean")
+
+plot3D::image2D(x = vx, y = vy, z = YmeanAni2)
+points(obs$x, col="white",pch=3)
+title(main = "anisotropic GP (scale + rotation): mean ")
+
+plot3D::contour2D(x = vx, y = vy, YmeanAni2)
+points(obs$x, col="black",pch=3)
+rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
+title(main = "anisotropic GP (scale + rotation): mean")
+```
 
 ### Space-time Gaussian Process Modelling
 
@@ -293,16 +391,16 @@ x/y coordinates).
 
 The element `y` is a big vector constiting of all the time-series recorded
 at the positions defined by element `x` put one after another. For example, 
-consider 5 monitoring stations with positions x~1~, x~2~, x~3~, x~4~ and x~5~. 
+consider 5 monitoring stations with positions x<sub>1</sub>, x<sub>2</sub>, x<sub>3</sub>, x<sub>4</sub> and x<sub>5</sub>. 
 At each station, a time-series was recorded:
 
-* at station 1: **y**~1~ = y~1,1~, y~1,2~, ..., y~1,t~
-* at station 2: **y**~2~ = y~2,1~, y~2,2~, ..., y~2,t~
+* at station 1: **y**<sub>1</sub> = y<sub>1,1</sub>, y<sub>1,2</sub>, ..., y<sub>1,t</sub>
+* at station 2: **y**<sub>2</sub> = y<sub>2,1</sub>, y<sub>2,2</sub>, ..., y<sub>2,t</sub>
 * ...
-* at station 5: **y**~5~ = y~5,1~, y~5,2~, ..., y~5,t~
+* at station 5: **y**<sub>5</sub> = y<sub>5,1</sub>, y<sub>5,2</sub>, ..., y<sub>5,t</sub>
 
-Then, the element `y` is set to c(**y**~1~, **y**~2~, **y**~3~, **y**~4~, 
-**y**~5~).
+Then, the element `y` is set to c(**y**<sub>1</sub>, **y**<sub>2</sub>, **y**<sub>3</sub>, **y**<sub>4</sub>, 
+**y**<sub>5</sub>).
 
 Assuming that the data were recorded every hour, the time scale `t` is simply
 1, 2, 3, ..., t.
@@ -347,15 +445,10 @@ covModels <- list(pos =  list(kernel="matern",
                   time = list(kernel="gaussian",
                               l = 0.15,   # correlation length
                               h = 1.25))
-```
-
-2D mean linear mean function 
-```r
+                              
+# 2D mean linear mean function 
 op <- 2
-```
 
-Standard deviation (measurement error):
-```r
 # Gaussian likelihood
 sigma <- 0.2
 ```
@@ -381,17 +474,17 @@ Ymean <-  array(GP$mean, dim=c(length(obs$t), length(vx), length(vy)))
 Ysd <-  array(sqrt(diag(GP$cov)), dim=c(length(obs$t), length(vx), length(vy)))
 
 par(mfrow = c(2,5))
-for(i in seq_len(10)){
+for(i in seq_along(obs$t)){
   plot3D::image2D(z = Ymean[i,,], x = vx, y = vy, zlim = range(Ymean), 
-                  main = "mean")
+                  main = paste("mean at t =",obs$t[i]))
   points(obs$x, col="white",pch=20, cex=2)
   points(obs$x, col="black",pch=3)
 }
 
 par(mfrow = c(2,5))
-for(i in seq_len(10)){
+for(i in seq_along(obs$t)){
   plot3D::image2D(z = Ysd[i,,], x = vx, y = vy, zlim = range(Ysd), 
-                  main = "standard deviation")
+                  main =  paste("std. dev. at t =",obs$t[i]))
   points(obs$x, col="white",pch=20, cex=2)
   points(obs$x, col="black",pch=3)
 }
@@ -411,9 +504,10 @@ colnames(ystar) <- c("x1", "x2", "t", "y")
 Ysim <- array(ystar[,"y"], dim=c(length(obs$t), length(vx), length(vy)))
 
 par(mfrow = c(2,5))
-for(i in seq_len(10)){
+for(i in seq_along(obs$t)){
   plot3D::image2D(z = Ysim[i,,], x = vx, y = vy,
-                  zlim = range(ystar[,"y"]), main = "simulation")
+                  zlim = range(ystar[,"y"]), 
+                  main = paste("simulation at t =",obs$t[i]))
   points(obs$x, col="white",pch=20, cex=2)
   points(obs$x, col="black",pch=3)
 }

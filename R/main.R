@@ -33,16 +33,16 @@ NULL
 gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
                     sigmat = 0){
 
-  Kxx <-  covm(obs$x, obs$x, covModels[[1]])
-  Kstar  <- covm(obs$x, targ$x, covModels[[1]])
+  Kxx       <- covm( obs$x,  obs$x, covModels[[1]])
+  Kstar     <- covm( obs$x, targ$x, covModels[[1]])
   Kstarstar <- covm(targ$x, targ$x, covModels[[1]])
-  sigma <- rep(sigma, ncol(Kxx))
-  y <- obs$y
+  sigma     <- rep(sigma, ncol(Kxx))
+  y         <- obs$y
 
   # if there are derivative
   if(!is.null(bc)){
-    Kdxx <- covm(obs$x, bc$x, covModels[[1]] , d = 1, dx = bc$v)
-    Kdxdx <- covm(bc$x, bc$x, covModels[[1]] , d = 2, dx = bc$v)
+    Kdxx  <- covm(obs$x, bc$x, covModels[[1]] , d = 1, dx = bc$v)
+    Kdxdx <- covm( bc$x, bc$x, covModels[[1]] , d = 2, dx = bc$v)
     sigma <- c(sigma, rep(bc$sigma, ncol(Kdxx)))
     Kxx  <- rbind(cbind(   Kxx,  Kdxx ),
                   cbind(t(-Kdxx), Kdxdx))
@@ -506,18 +506,67 @@ covm <- function(x, y, covModel, d = 0, dx = 1, ...){
     covModel[["kernel"]] <- covModel$type
     warning("In covModel, rename 'type' into 'kernel'.\n")
   }
-  if(covModel$kernel == "linear"){
-    kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
-                         substr(covModel$kernel,2,nchar(covModel$kernel)) )
-    do.call(kernelName, list(x, y, covModel, d = d, w = 1, ...))
+  if(is.null(dim(x))){
+      #XY <- outer(x, y, function(x, y){ sqrt((x - y)^2)})
+    M <- NULL
   }else{
-    if(is.null(dim(x))){
-        XY <- outer(x, y, function(x, y){ sqrt((x - y)^2)})
-    }else if(dim(x)[2] == 2){
-        XY <- dist2(x,y)
-    }else{
-        XY <- distn(x,y)
+    # M = identity matrix
+    M <- diag(rep(1L, ncol(x)))
+    # scaling
+    if(!is.null(covModel$scale)){
+      if(length(covModel$scale) == ncol(x)){
+        M <- M %*% diag(covModel$scale)
+      }else{
+        stop(paste0("'covModel$scale' must have length identical ",
+                    "to the number of position coordinates!\n"))
+      }
     }
+    #CHECK scaling/rotation where when?
+    # rotation
+    if(!is.null(covModel$rot)){
+      if(ncol(x) == 2){
+        if(length(covModel$rot) == 1){
+          mrot <- covModel$rot
+          M <- M %*% matrix(c(cos(mrot), - sin(mrot),
+                            sin(mrot), cos(mrot)),
+                            ncol = 2, nrow = 2, byrow = TRUE)
+        }else{
+          stop(paste0("'covModel$rot' must have length one!\n"))
+        }
+      }else if(ncol(x) == 3){
+        if(length(covModel$rot) == 2){
+          a1 <- covModel$rot[1]
+          a2 <- covModel$rot[2]
+          M <- M %*% matrix(c(cos(a1)*cos(a2), -sin(a1), -cos(a1)*sin(a2),
+                              sin(a1)*cos(a2),  cos(a1), -sin(a1)*sin(a2),
+                              sin(a2), 0, cos(a2)),
+                            ncol = 2, nrow = 2, byrow = TRUE)
+        }else{
+          stop(paste0("'covModel$rot' must have length two!\n"))
+        }
+      }else{
+        stop(paste0("'covModel$rot' must have length one!\n"))
+      }
+    }
+  }
+  if(covModel$kernel == "linear"){
+    if(!is.null(dim(x)) && dim(x)[2] > 1 && !is.null(M)){
+      L <- cholfac(M)
+      x <- x %*% (L)
+      y <- y %*% (L)
+    }
+    # kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
+    #                      substr(covModel$kernel,2,nchar(covModel$kernel)) )
+    kernelName <- .kernelName(covModel$kernel)
+    KK <- do.call(kernelName, list(x, y, covModel, d = d, w = 1, ...))
+    return(KK)
+  }else{
+    XY <- crossDist(x, y, M)
+    #if(dim(x)[2] == 2){
+    #    XY <- dist2(x, y, M)
+    #}else{
+    #  XY <- distn(x,y, M)
+    #}
     if(d == 1){
       if(is.null(dim(x)) && is.null(dim(y))){
         w0 <- sign(outer(x, y, "-"))
@@ -556,97 +605,15 @@ covm <- function(x, y, covModel, d = 0, dx = 1, ...){
     }else{
       w = 1
     }
-    kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
-                         substr(covModel$kernel,2,nchar(covModel$kernel)) )
-    do.call(kernelName, list(XY, covModel, d = d, w = w, ...))
+    # kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
+    #                      substr(covModel$kernel,2,nchar(covModel$kernel)) )
+    kernelName <- .kernelName(covModel$kernel)
+    KK <- do.call(kernelName, list(XY, covModel, d = d, w = w, ...))
+    return(KK)
   }
 }
 
 
-##--- COVARIANCE MATRIX
-covmOld <- function(x, y, covModel, d = 0, dx = 1, ddx = 1, ...){
-  if(length(covModel$type) == 1 && length(covModel$kernel) == 0){
-    covModel[["kernel"]] <- covModel$type
-    warning("In covModel, rename 'type' into 'kernel'.\n")
-  }
-#   outer(x,y, covModel$kernel,covModel)
-    if(is.null(dim(x))){
-        XY <- outer(x, y, function(x, y){ sqrt((x - y)^2)})
-    }else if(dim(x)[2] == 2){
-        XY <- dist2(x,y)
-    }else{
-        XY <- distn(x,y)
-    }
-    if(d == 1){
-      if(is.null(dim(x)) && is.null(dim(y))){
-        w0 <- sign(outer(x, y, "-"))
-#         w1 <- outer(rep(1,length(x)), dx, function(x,y){sign2(y)})
-#         w <- (w0*w1)
-        w <- (w0)
-        cat("*\n")
-      }else if(dim(x) > 1 && dim(y) > 1){
-#         r1 <- outer(x[,1], y[,1], "-")
-#         r2 <- outer(x[,2], y[,2], "-")
-#         rn <- sqrt(r1^2 + r2^2)
-#         v1 <-  outer(dx[,1], dx[,1], function(x,y) x)
-#         v2 <-  outer(dx[,2], dx[,2], function(x,y) x)
-#         vn <- sqrt(v1^2 + v2^2)
-#         w <- (r1*v1 + r2*v2)/(rn*vn)
-#         w[(rn*vn) == 0] <- 0
-        r1 <- outer(x[,1], y[,1], "-")
-        r2 <- outer(x[,2], y[,2], "-")
-        rn <- sqrt(r1^2 + r2^2)
-        w <- dx[1]*r1/rn + dx[2]*r2/rn
-
-      }
-    }else if(d == 2){
-       if(is.null(dim(x)) && is.null(dim(y))){
-#         w0 <- sign2(outer(x, y, "-"))
-#         w1 <- sign2(outer(dx, dx, "-"))
-#         w1 <- outer(dx, dx, function(x,y){sign2(x)})
-#         w <- (w0*w1)
-#         w <- t(w0*w1)
-#         w <- outer(dx, dx, function(x,y){sign2(x)*sign2(y)})
-#         w <- outer(dx, dx, function(x,y){sign(x)*sign(y)})
-          w <- 1
-        # does not work
-        #   w <- w0
-        #   w <- w1
-        #   w <- w0 %*% t(w0)
-        #   w <- matrix(1, nrow=length(x),ncol=length(y))
-        #   s1 <- sign(outer(x, y, "-"))
-        #   s2 <- sign(outer(y, x, "-"))
-        #   w[lower.tri(w)] <-  s1[lower.tri(s1)]
-        #   w[upper.tri(w)] <- s2[lower.tri(s2)]
-        #   w <- -w0*w1
-#         w <- -outer(dx, dx, function(x,y){sign2(x)*sign2(y)})
-#         w <- sign(outer(x, y, "-"))
-#         w <- -1
-#         w <- sign(outer(x, y, "-"))
-
-        cat("**\n")
-      }else if(dim(x) > 1 && dim(y) > 1){
-#         w <- diag((dx) %*% t(x - y)) * diag((dx) %*% t(x - y))
-#         v1 <-  outer(dx[,1], dx[,1], "*")
-#         v2 <-  outer(dx[,2], dx[,2], "*")
-#         vn <- sqrt(v1^2 + v2^2)
-#         w <- v1*v2/(vn^2)
-#         w[(vn*vn) == 0] <- 0
-          r1 <- outer(x[,1], y[,1], "-")
-          r2 <- outer(x[,2], y[,2], "-")
-          rn <- sqrt(r1^2 + r2^2)
-          w1 <- dx[1]*r1/rn + dx[2]*r2/rn
-          w2 <- ddx[1]*r1/rn + ddx[2]*r2/rn
-          w <- w1 * w2
-          w[is.na(w)] <- 0
-      }
-    }else{
-      w = 1
-    }
-  kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
-                       substr(covModel$kernel,2,nchar(covModel$kernel)) )
-  do.call(kernelName, list(XY, covModel, d = d, w = w, ...))
-}
 
 sign2 <- function(x){
   ifelse(x == 0, 1, sign(x))
@@ -658,33 +625,95 @@ dcovm <- function(x, y, covModel, ...){
     covModel[["kernel"]] <- covModel$type
     warning("In covModel, rename 'type' into 'kernel'.\n")
   }
-# 	outer(x,y, covModel$kernel,covModel)
-	if(is.null(dim(x))){
-		XY <- outer(x, y, "-")
-	}else if(dim(x)[2] == 2){
-		XY <- dist2(x,y)
-	}else{
-		XY <- distn(x,y)
-
-	}
-  kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
-                       substr(covModel$kernel,2,nchar(covModel$kernel)) )
-  do.call(kernelName, list(XY, covModel,  ...))
+  XY <- crossDist(x, y)
+	# if(is.null(dim(x))){
+	#	XY <- outer(x, y, "-")
+	# }else if(dim(x)[2] == 2){
+	#	XY <- dist2(x,y)
+	# }else{
+	#	XY <- distn(x,y)
+	# }
+  # kernelName <- paste0("k", toupper(substr(covModel$kernel,0,1)),
+  #                     substr(covModel$kernel,2,nchar(covModel$kernel)) )
+  kernelName <- .kernelName(covModel$kernel)
+  KK <- do.call(kernelName, list(XY, covModel,  ...))
+  return(KK)
 }
 
-distn <- function(X, Y){
-	apply(outer(X,t(Y),"-"),c(1,4),function(x)sqrt(sum(diag(x*x))))
+
+.kernelName <- function(kname){
+  return(paste0("k", toupper(substr(kname,0,1)),
+                substr(kname,2,nchar(kname)) ))
 }
 
-dist2 <- function(X,Y){
-	M <- nrow(X)
-	N <- nrow(Y)
-	mmatx <- matrix(rep(X[, 1], N), M ,  N)
-	mmaty <- matrix(rep(Y[, 1], M), M ,  N,byrow=TRUE)
-	nmatx <- matrix(rep(X[, 2], N), M ,  N)
-	nmaty <- matrix(rep(Y[, 2], M), M ,  N,byrow=TRUE)
-	D <- sqrt((mmatx - (mmaty))^2 + (nmatx - (nmaty))^2)
+#' Cross-distance between two matrix
+#' 
+#' Compute the distance between every rows of two matrix. The returned distance
+#' has for dimension: nrow(X) x ncol(Y).
+#' If M is the identity matrix (by default), the distance is isotropic, if not
+#' the distance is anisotropic.
+#' @param X a matrix
+#' @param Y a matrix with same number of columns as X
+#' @param M a positive semidefinite matrix (nrow(M) = ncol(M) = ncol(X))
+#' @name covm
+#' @export
+crossDist <- function(X, Y, M = NULL){
+  if(!identical(ncol(X), ncol(Y))){
+    stop("X and Y must have identical dimensions!\n")
+  }
+  if(is.null(dim(X))){
+    # return( outer(X, Y, "-") )
+    return( outer(X, Y, function(X, Y){ sqrt((X - Y)^2)}))
+  }else if(dim(X)[2] == 2){
+    return( dist2(X, Y, M)) 
+  }else{
+    return( distn(X, Y, M) )
+  }
+}
+
+# distance for ncol(X) > 2
+distn <- function(X, Y, M){
+  if(!is.null(M)){
+    L <- cholfac(M)
+    X <- X %*% (L)
+    Y <- Y %*% (L)  
+  }
+	return( apply(outer(X,t(Y),"-"),c(1,4),
+	           function(x)sqrt(sum(diag(x*x)))))
+}
+
+dist2 <- function(X,Y, M){
+  if(!is.null(M)){
+    L <- cholfac(M)
+    X <- X %*% (L)
+    Y <- Y %*% (L)
+  }
+	nx <- nrow(X)
+	ny <- nrow(Y)
+	matx1 <- matrix(rep(X[, 1], ny), nx ,  ny)
+	maty1 <- matrix(rep(Y[, 1], nx), nx ,  ny, byrow = TRUE)
+	matx2 <- matrix(rep(X[, 2], ny), nx ,  ny)
+	maty2 <- matrix(rep(Y[, 2], nx), nx ,  ny, byrow = TRUE)
+	D <- sqrt((matx1 - maty1)^2 + (matx2 - maty2)^2)
 	return(D)
+}
+
+dist2oldschool <- function(X,Y,M){
+  if(!is.null(dim(X)) && dim(X)[2] > 1 && !is.null(M)){
+    L <- cholfac(M)
+    X <- X %*% (L)
+    Y <- Y %*% (L)
+  }
+  nx <- nrow(X)
+  ny <- nrow(Y)
+  Dref <- matrix(nrow = nx, ncol=ny)
+  for(i in 1:nx){
+    for(j in 1:ny){
+      U <-  (X[i,,drop=FALSE] - Y[j,,drop=FALSE]) 
+      Dref[i,j] <- U %*% t(U)
+    }
+  }
+  return(Dref)
 }
 
 
@@ -747,8 +776,15 @@ kLinear <- function(x, y, para, d = 0, w = 1){
   b <- para$b
   h <- para$h
   cc <- para$c
-  XY <- outer((x - cc), (y - cc), "*")
+  x <- x - cc
+  y <- y - cc
+  if(is.null(dim(x))){
+    XY <- outer(x, y, "*")
+  }else{
+    XY <- x %*% t(y)
+  }
   K <- XY * h^2 + b^2
+  return(K)
 }
 
 
