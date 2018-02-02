@@ -32,9 +32,8 @@ Thank you!
 ## How to install/load
 
 ```r
-library(devtools)
+if(!require("devtools")) install.packages("devtools")
 devtools::install_github("emanuelhuber/GauProMod")
-library(GauProMod)
 ```
 
 ## Short tutorial
@@ -80,6 +79,19 @@ covModel <- list(kernel="gaussian",
                  h = 0.25)  # std. deviation
 ```
 
+##### Covariance as a function of distance
+```r
+covModel <- list(kernel="matern",
+                 l = 5,     # correlation length
+                 v = 1,     # smoothness
+                 h = 2.45   # std. deviation
+                )
+r <- seq(0, 20, by = 0.1)
+myCov <- covfx(r = r, covModel = covModel)
+plot(r, myCov, type = "l", ylim = c(0, max(myCov)),
+     ylab = "covariance", xlab = "distance", xaxs = "i", yaxs = "i")
+```
+
 The following mean function (or basis functions) are available 
 (see Rasmussen and Williams (2006), Section 2.7): 
 
@@ -95,12 +107,16 @@ op <- 0
 Because nothing is perfectly observed, it makes sense to account for uncertainty
 in the observation. Gaussian likelihood, defined by the standard deviation 
 `sigma` (erreur uncertainty) is the only form of likelihood 
-currently implemented in GauProMod
+currently implemented in GauProMod.
+Sigma must be either a length-one vector or has exactly the same length as the
+observations values
 
 ```r
 # standard deviation measurement error
 # Gaussian likelihood
 sigma <- 0.2
+# or
+sigma <- abs(rnorm(length(obs$y)))
 ```
 
 
@@ -158,7 +174,148 @@ legend("topleft", legend = c("obs", "GP sim"), lty = c(NA, 1),
        pch = c(20, NA), col=c("black", "blue"), bty="n")
 ```
 
-### 2D Gaussian Process Modelling
+
+### Gaussian Process Modelling with two dimensional "positions"
+
+To understand everything, please read the previous section ("1D Gaussian
+Process Modelling").
+
+I you want to simulate a Gaussian process on a two-dimensional mesh, go to
+the section "2D Gaussian Process Modelling (simulation on a 2D mesh)".
+
+#### Observations and  target
+The observations are defined by a list with `x` the positions of the 
+observations and `y` the observed values. 
+Here, the element `x` of the observation list is a matrix corresponding to
+the coordinates of the observations points (East/North coordinates or 
+x/y coordinates).
+
+
+
+```r
+#observations
+obs <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31),
+                     c(1.33, 7.24, 4.26, 2.67, 6.17, 8.04, 3.18, 5.63, 8.33)),
+            y = c(2.60, 1.48, 1.36, 8.61, 1.00, 1.58, 8.42, 8.39, 1.50))
+```
+
+The target is defined by a two-columns matrix corresponding to the
+coordinates of the target points.
+
+```r
+# targets (=2D mesh)
+targ <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31, 
+                       3.74, 5.93, 7.19, 6.61, 5.54, 2.27, 1.61, 4.02, 1.06),
+                     c(1.33, 7.24, 4.26, 2.67, 6.17, 8.04, 3.18, 5.63, 8.33,
+                       6.34, 3.68, 6.82, 1.79, 8.60, 7.73, 5.35, 2.45, 4.92))
+                      )
+```
+
+#### Covariance function, mean function and likelihood
+To build the covariance functions, the same kernels as in the previously 
+defined are available:
+```r
+# Matern kernel
+covModel <- list(kernel="matern",
+                 l = 5,     # correlation length
+                 v = 1,     # smoothness
+                 h = 2.45   # std. deviation
+                )
+```
+
+Note that the 2D mean functions (or basis functions) are differently defined: 
+
+```r
+# 2D quadratic mean function
+op <- 5
+# zero-mean function (no trend)
+op <- 0 
+# 2D linear mean function
+op <- 2
+```
+
+Standard deviation (measurement error):
+```r
+# Gaussian likelihood
+sigma <- 0.2
+```
+
+
+#### Conditional Gaussian Process modelling
+
+```r
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+               sigma = sigma, op = op)
+names(GP)
+# GP$mean   = mean value at location xstar
+# GP$cov    = covariance matrix of the conditioned GP
+# GP$logLik = log-likelihood of the conditioned GP
+# GP$xstar  = x-coordinates at which the GP is simulated
+```
+
+```r
+# mean
+Ymean <- GP$mean
+# standard deviation
+YSD <- sqrt(diag(GP$cov))
+ysdplus <- Ymean - 1.95* YSD
+ysdminus <- Ymean + 1.95* YSD
+```
+
+#### Results
+Plot the mean and standard deviation functions
+
+Three-dimensional plot
+
+```r
+par(mfrow = c(1,1))
+ylim <- range(Ymean, obs$y)
+plot3D::scatter3D(x = targ$x[,1], y = targ$x[,2], z = Ymean, clim = ylim, 
+                  pch = 20)
+plot3D::arrows3D(x0 = targ$x[,1], y0 = targ$x[,2], z0 = ysdminus, 
+                 x1 = targ$x[,1], y1 = targ$x[,2], z1 = ysdplus,
+                 length=0.05, angle=90, code=3, add = TRUE, col = "black")
+# large dots = observations
+plot3D::scatter3D(x = obs$x[,1], y = obs$x[,2], z = obs$y, add = TRUE, 
+                  pch = 20, cex = 3, clim = ylim)
+```
+
+Pair of two-dimensional plots
+
+```r
+par(mfrow = c(1, 2))
+ylim <- range(ysdplus, ysdminus, obs$y)
+
+plot(targ$x[,1], Ymean, type = "p", ylim = ylim, pch = 3, cex = 0.5)
+arrows(targ$x[,1], ysdminus, targ$x[,1], ysdplus, length=0.05, angle=90, code=3)
+points(obs$x[,1], obs$y, col = "dodgerblue", pch = 20)
+
+plot(targ$x[,2], Ymean, type = "p", ylim = ylim, pch = 3, cex = 0.5)
+arrows(targ$x[,2], ysdminus, targ$x[,2], ysdplus, length=0.05, angle=90, code=3)
+points(obs$x[,2], obs$y, col = "dodgerblue", pch = 20)
+
+```
+
+#### Random conditional simulation
+
+```r
+L <- cholfac(GP$cov)
+ystar <- gpSim(GP , L = L)
+
+par(mfrow = c(1,1))
+ylim <- range(ystar[,3], obs$y)
+plot3D::scatter3D(x = targ$x[,1], y = targ$x[,2], z = ystar[,3], clim = ylim, 
+                  pch = 18)
+# dots = observations
+plot3D::scatter3D(x = obs$x[,1], y = obs$x[,2], z = obs$y, add = TRUE, 
+                  pch = 20, cex = 3, clim = ylim)
+```
+
+
+
+
+
+### 2D Gaussian Process Modelling (simulation on a 2D mesh)
 To understand everything, please read the previous section ("1D Gaussian
 Process Modelling").
 
@@ -186,7 +343,7 @@ The function `vecGrid`returns a two-columns matrix corresponding to the
 coordinates of each element of the grid.
 
 ```r
-# targets
+# targets (=2D mesh)
 vx <- seq(0, 10, by = 0.5)
 vy <- seq(0, 10, by = 0.5)
 targ <- list(x = vecGrid(vx, vy))

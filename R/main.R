@@ -617,6 +617,21 @@ covm <- function(x, y, covModel, d = 0, dx = 1, ...){
   }
 }
 
+## To plot covariance function
+# example
+# covModel <- list(kernel="matern",
+                 # l = 5,     # correlation length
+                 # v = 1,     # smoothness
+                 # h = 2.45   # std. deviation
+                # )
+# r <- seq(0, 20, by = 0.1)
+# myCov <- covfx(r = r, covModel = covModel)
+# plot(r, myCov, type = "l", ylim = c(0, max(myCov)),
+     # ylab = "covariance", xlab = "distance", xaxs = "i", yaxs = "i")
+covfx <- function(r, covModel){
+  kernelName <- .kernelName(covModel$kernel)
+  do.call(kernelName, list(r, covModel))
+}
 
 
 sign2 <- function(x){
