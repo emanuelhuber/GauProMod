@@ -36,7 +36,11 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
   Kxx       <- covm( obs$x,  obs$x, covModels[[1]])
   Kstar     <- covm( obs$x, targ$x, covModels[[1]])
   Kstarstar <- covm(targ$x, targ$x, covModels[[1]])
-  sigma     <- rep(sigma, ncol(Kxx))
+  if(length(sigma) == 1){
+    sigma     <- rep(sigma, ncol(Kxx))
+  }else if(length(sigma) != ncol(Kxx)){
+    stop("length of sigma must be equal to 1 or to the number of observations")
+  }
   y         <- obs$y
 
   # if there are derivative
