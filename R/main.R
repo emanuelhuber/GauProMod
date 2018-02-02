@@ -620,6 +620,8 @@ covm <- function(x, y, covModel, d = 0, dx = 1, ...){
 
 #' Return covariance as a function of distance
 #'
+#' @param r vector of distance
+#' @param covModel Covariance mdoel
 #' @name covfx
 #' @export
 #' @examples
