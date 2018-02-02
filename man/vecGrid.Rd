@@ -9,4 +9,3 @@ vecGrid(x, y)
 \description{
 Create vecgrid
 }
-

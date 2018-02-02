@@ -9,7 +9,7 @@ Authors@R:
 Maintainer: Emanuel Huber <emanuel.huber@alumni.ethz.ch>
 Description: A package for conditional and unconditional Gaussian
     Process Modelling (GauProMod).
-License:  MIT License
+License: MIT License
 LazyData: TRUE
 Collate:
 	'RcppExports.R'
@@ -24,4 +24,4 @@ LinkingTo: Rcpp, RcppEigen
 Imports:
     Rcpp,
     RcppEigen
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

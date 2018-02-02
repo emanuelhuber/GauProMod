@@ -574,8 +574,8 @@ covm <- function(x, y, covModel, d = 0, dx = 1, ...){
     if(d == 1){
       if(is.null(dim(x)) && is.null(dim(y))){
         w0 <- sign(outer(x, y, "-"))
-  #         w1 <- outer(rep(1,length(x)), dx, function(x,y){sign2(y)})
-  #         w <- (w0*w1)
+        # w1 <- outer(rep(1,length(x)), dx, function(x,y){sign2(y)})
+        # w <- (w0*w1)
         w <- (w0)
       }else if(dim(x) > 1 && dim(y) > 1){
         r1 <- outer(x[,1], y[,1], "-")
@@ -617,17 +617,21 @@ covm <- function(x, y, covModel, d = 0, dx = 1, ...){
   }
 }
 
-## To plot covariance function
-# example
-# covModel <- list(kernel="matern",
-                 # l = 5,     # correlation length
-                 # v = 1,     # smoothness
-                 # h = 2.45   # std. deviation
-                # )
-# r <- seq(0, 20, by = 0.1)
-# myCov <- covfx(r = r, covModel = covModel)
-# plot(r, myCov, type = "l", ylim = c(0, max(myCov)),
-     # ylab = "covariance", xlab = "distance", xaxs = "i", yaxs = "i")
+
+#' Return covariance as a function of distance
+#'
+#' @name covfx
+#' @export
+#' @examples
+#' covModel <- list(kernel="matern",
+#'                  l = 5,     # correlation length
+#'                  v = 1,     # smoothness
+#'                  h = 2.45   # std. deviation
+#' )
+#' r <- seq(0, 20, by = 0.1)
+#' myCov <- covfx(r = r, covModel = covModel)
+#' plot(r, myCov, type = "l", ylim = c(0, max(myCov)),
+#'      ylab = "covariance", xlab = "distance", xaxs = "i", yaxs = "i")
 covfx <- function(r, covModel){
   kernelName <- .kernelName(covModel$kernel)
   do.call(kernelName, list(r, covModel))

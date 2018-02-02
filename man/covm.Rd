@@ -2,11 +2,26 @@
 % Please edit documentation in R/main.R
 \name{covm}
 \alias{covm}
+\alias{covm}
+\alias{crossDist}
 \title{Covariance matrix}
 \usage{
 covm(x, y, covModel, d = 0, dx = 1, ...)
+
+crossDist(X, Y, M = NULL)
+}
+\arguments{
+\item{X}{a matrix}
+
+\item{Y}{a matrix with same number of columns as X}
+
+\item{M}{a positive semidefinite matrix (nrow(M) = ncol(M) = ncol(X))}
 }
 \description{
 Create a covariance matrix according to the kernel parametrisation
-}
 
+Compute the distance between every rows of two matrix. The returned distance
+has for dimension: nrow(X) x ncol(Y).
+If M is the identity matrix (by default), the distance is isotropic, if not
+the distance is anisotropic.
+}

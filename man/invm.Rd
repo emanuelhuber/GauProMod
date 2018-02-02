@@ -9,4 +9,3 @@ invm(x)
 \description{
 This function first try the Cholesky decomposition
 }
-

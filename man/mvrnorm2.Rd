@@ -9,4 +9,3 @@ mvrnorm2(n, mu, Sigma)
 \description{
 A more robute alternative to the \code{mvrnorm} function.
 }
-

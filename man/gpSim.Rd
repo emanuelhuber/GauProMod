@@ -9,4 +9,3 @@ gpSim(A, L = NULL, n = 1)
 \description{
 Simulate a Gaussian Process
 }
-

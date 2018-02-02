@@ -9,4 +9,3 @@ cholfac(x)
 \description{
 Return the lower Cholesky factor L such that X = L t(L)
 }
-

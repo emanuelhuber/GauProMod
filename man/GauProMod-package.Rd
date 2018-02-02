@@ -19,7 +19,11 @@ The core functions are coded in C++ and based on the EIGEN library.
   \item GP conditioned to derivative observations
 }
 }
+
 \references{
 Several books!
 }
+\author{
+\strong{Maintainer}: Emanuel Huber \email{emanuel.huber@alumni.ethz.ch}
 
+}

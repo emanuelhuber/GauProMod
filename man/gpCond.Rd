@@ -9,4 +9,3 @@ gpCond(obs, targ, covModels, sigma = 0, op = 0, bc = NULL, sigmat = 0)
 \description{
 Conditional Gaussian Process simulation
 }
-
