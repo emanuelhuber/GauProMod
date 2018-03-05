@@ -185,6 +185,7 @@ gpCondOld <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL){
 #' @export
 cholfac <- function(x){
 #   return(cholnew_rcpp(x))
+  storage.mode(x) <- "numeric"
   return(cholfac_rcpp(x))
 }
 
