@@ -44,14 +44,14 @@ Thank you!
 
 ## How to install/load
 
-```{r install, message=FALSE, results='hold'}
+```{r install, message=FALSE, results='hide'}
 if(!require("devtools")) install.packages("devtools")
 devtools::install_github("emanuelhuber/GauProMod")
 ```
 
 ## Short tutorial
 ### Load libraries
-```{r load}
+```{r load, message=FALSE, results='hide'}
 library(GauProMod)
 library(plot3D)
 library(RColorBrewer)
@@ -135,7 +135,7 @@ sigma <- abs(rnorm(length(obs$y)))
 
 #### Conditional Gaussian Process modelling
 
-```{r gpCond1D}
+```{r gpCond1D, results='hide'}
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
@@ -159,7 +159,7 @@ plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y",
 lines(GP$xstar, GP$mean,col="red")  # mean
 lines(GP$xstar, xm,lty=3)            # + sd
 lines(GP$xstar, xp,lty=3)            # - sd
-legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 3, 1),
+legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
        pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
 ```
        
@@ -197,7 +197,7 @@ We define a new object `bc` (a list) defining the derivatives, with elements:
 - `y` the value of the derivative
 - `sigma` the uncertainty (standard deviation) on the derivative value (`y`)
 
-```{r gpCond1D_deriv}
+```{r gpCond1D_deriv, results='hold'}
 
 covModel <- list(kernel = "matern",
                  l = 0.25,
@@ -222,25 +222,24 @@ xm <-(GP$mean - sqrt(diag(GP$cov)))  # mean - sd
 xp2 <-(GP2$mean + sqrt(diag(GP2$cov)))  # mean + sd
 xm2 <-(GP2$mean - sqrt(diag(GP2$cov)))  # mean - sd
 
-par(mfrow = c(1, 2))
+
 plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
      xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
-     pch = 20, col = "black") 
+     pch = 20, col = "black", main = "without derivatives") 
 lines(GP$xstar, GP$mean,col="red")  # mean
 lines(GP$xstar, xm,lty=3)            # + sd
 lines(GP$xstar, xp,lty=3)            # - sd
-legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 3, 1),
+legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
        pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
 
 plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
      xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
-     pch = 20, col = "black") 
+     pch = 20, col = "black", main = "with derivatives") 
 lines(GP2$xstar, GP2$mean, col = "red")  # mean
 lines(GP2$xstar, xm2,lty=3)            # + sd
 lines(GP2$xstar, xp2,lty=3)            # - sd
-legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 3, 1),
+legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
        pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
-abline(v = bc$x)
 y0 <- GP2$mean[sapply(bc$x, function(x, a) which.min(abs(x - a)), GP2$xstar)]
 arrows(x0 = bc$x - 1/2, y0 = y0 - bc$y/2, 
        x1 = bc$x + 1/2, y1 = y0 + bc$y/2,
@@ -315,7 +314,7 @@ sigma <- 0.2
 
 #### Conditional Gaussian Process modelling
 
-```{r gpCond2D}
+```{r gpCond2D, results='hide'}
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
@@ -462,7 +461,7 @@ sigma <- 0.2
 
 #### Conditional Gaussian Process modelling
 
-```{r condgrid}
+```{r condgrid, results='hide'}
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
@@ -521,7 +520,7 @@ rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 
 #### Anisotropy (scaling only along the coordinates axes)
 
-```{r covAni}
+```{r covAni, results='hide'}
 covModelAni <- list(kernel="matern",
                  l = 1,       # correlation length
                  v = 2.5,     # smoothness
@@ -570,7 +569,7 @@ title(main = "anisotropic GP: mean")
 
 #### Anisotropy (scaling and rotation along the coordinates axes)
 
-```{r covani2}
+```{r covani2, results='hide'}
 covModelAni2 <- list(kernel="matern",
                  l = 1,       # correlation length
                  v = 2.5,     # smoothness
@@ -725,7 +724,7 @@ par(mfrow = c(1,2))
 
 
 plot3D::contour2D(x = vx, y = vy, Ymeanbc, asp=1, nlevels = 20, col = "black", lwd = 2, 
-                  xaxs = "i", yaxs = "i", labcex = 1)
+                  xaxs = "i", yaxs = "i", labcex = 1, xlim = c(-0.5, 10.5))
 points(obs$x, pch=20, col = "red", cex = 2)
 title(main = "mean GP with no-flow\n boundaries")
 
@@ -735,7 +734,7 @@ arrows(bc$x[,1] - bc$v[,2]/2, bc$x[,2] - bc$v[,1]/2,
        length = 0.15, col = "dodgerblue2", lwd = 2)
 
 plot3D::contour2D(x = vx, y = vy, Ymeanbc2, asp=1, nlevels = 20, col = "black", lwd = 2, 
-                  xaxs = "i", yaxs = "i", labcex = 1)
+                  xaxs = "i", yaxs = "i", labcex = 1, xlim = c(-0.5, 10.5))
 points(obs$x, pch=20, col = "red", cex = 2)
 title(main = "mean GP with no-flow \n and cst head boundaries")
 
@@ -828,7 +827,7 @@ sigma <- 0.2
 
 #### Conditional Gaussian Process modelling
 
-```{r condst}
+```{r condst, results='hide'}
 GP <- gpCond(obs = obs, targ = targ, covModels = covModels, 
                sigma = sigma, op = op)
 names(GP)

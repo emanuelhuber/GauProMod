@@ -40,19 +40,7 @@ Thank you!
 
 ```r
 if(!require("devtools")) install.packages("devtools")
-```
-
-```
-## Loading required package: devtools
-```
-
-```r
 devtools::install_github("emanuelhuber/GauProMod")
-```
-
-```
-## Skipping install of 'GauProMod' from a github remote, the SHA1 (25eb6a34) has not changed since last install.
-##   Use `force = TRUE` to force installation
 ```
 
 ## Short tutorial
@@ -154,13 +142,6 @@ sigma <- abs(rnorm(length(obs$y)))
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
-```
-
-```
-## [1] "mean"   "cov"    "logLik" "xstar"
-```
-
-```r
 # GP$mean   = mean value at location xstar
 # GP$cov    = covariance matrix of the conditioned GP
 # GP$logLik = log-likelihood of the conditioned GP
@@ -182,7 +163,7 @@ plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y",
 lines(GP$xstar, GP$mean,col="red")  # mean
 lines(GP$xstar, xm,lty=3)            # + sd
 lines(GP$xstar, xp,lty=3)            # - sd
-legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 3, 1),
+legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
        pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
 ```
 
@@ -251,32 +232,35 @@ xm <-(GP$mean - sqrt(diag(GP$cov)))  # mean - sd
 xp2 <-(GP2$mean + sqrt(diag(GP2$cov)))  # mean + sd
 xm2 <-(GP2$mean - sqrt(diag(GP2$cov)))  # mean - sd
 
-par(mfrow = c(1, 2))
-plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
-     xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
-     pch = 20, col = "black") 
-lines(GP$xstar, GP$mean,col="red")  # mean
-lines(GP$xstar, xm,lty=3)            # + sd
-lines(GP$xstar, xp,lty=3)            # - sd
-legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 3, 1),
-       pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
 
 plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
      xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
-     pch = 20, col = "black") 
+     pch = 20, col = "black", main = "without derivatives") 
+lines(GP$xstar, GP$mean,col="red")  # mean
+lines(GP$xstar, xm,lty=3)            # + sd
+lines(GP$xstar, xp,lty=3)            # - sd
+legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
+       pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
+```
+
+![](README_files/figure-html/gpCond1D_deriv-1.png)<!-- -->
+
+```r
+plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
+     xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
+     pch = 20, col = "black", main = "with derivatives") 
 lines(GP2$xstar, GP2$mean, col = "red")  # mean
 lines(GP2$xstar, xm2,lty=3)            # + sd
 lines(GP2$xstar, xp2,lty=3)            # - sd
-legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 3, 1),
+legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
        pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
-abline(v = bc$x)
 y0 <- GP2$mean[sapply(bc$x, function(x, a) which.min(abs(x - a)), GP2$xstar)]
 arrows(x0 = bc$x - 1/2, y0 = y0 - bc$y/2, 
        x1 = bc$x + 1/2, y1 = y0 + bc$y/2,
        length = 0.15, col = "dodgerblue2", lwd = 2)
 ```
 
-![](README_files/figure-html/gpCond1D_deriv-1.png)<!-- -->
+![](README_files/figure-html/gpCond1D_deriv-2.png)<!-- -->
 
 ### Gaussian Process Modelling with two dimensional "positions"
 
@@ -356,13 +340,6 @@ sigma <- 0.2
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
-```
-
-```
-## [1] "mean"   "cov"    "logLik" "xstar"
-```
-
-```r
 # GP$mean   = mean value at location xstar
 # GP$cov    = covariance matrix of the conditioned GP
 # GP$logLik = log-likelihood of the conditioned GP
@@ -525,13 +502,6 @@ sigma <- 0.2
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
-```
-
-```
-## [1] "mean"   "cov"    "logLik" "xstar"
-```
-
-```r
 # GP$mean   = mean value at location xstar
 # GP$cov    = covariance matrix of the conditioned GP
 # GP$logLik = log-likelihood of the conditioned GP
@@ -606,13 +576,6 @@ op <- 2
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModelAni), 
                sigma = sigma, op = op)
 names(GP)
-```
-
-```
-## [1] "mean"   "cov"    "logLik" "xstar"
-```
-
-```r
 # GP$mean   = mean value at location xstar
 # GP$cov    = covariance matrix of the conditioned GP
 # GP$logLik = log-likelihood of the conditioned GP
@@ -667,13 +630,6 @@ op <- 2
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModelAni2), 
                sigma = sigma, op = op)
 names(GP)
-```
-
-```
-## [1] "mean"   "cov"    "logLik" "xstar"
-```
-
-```r
 # GP$mean   = mean value at location xstar
 # GP$cov    = covariance matrix of the conditioned GP
 # GP$logLik = log-likelihood of the conditioned GP
@@ -821,7 +777,7 @@ par(mfrow = c(1,2))
 
 
 plot3D::contour2D(x = vx, y = vy, Ymeanbc, asp=1, nlevels = 20, col = "black", lwd = 2, 
-                  xaxs = "i", yaxs = "i", labcex = 1)
+                  xaxs = "i", yaxs = "i", labcex = 1, xlim = c(-0.5, 10.5))
 points(obs$x, pch=20, col = "red", cex = 2)
 title(main = "mean GP with no-flow\n boundaries")
 
@@ -831,7 +787,7 @@ arrows(bc$x[,1] - bc$v[,2]/2, bc$x[,2] - bc$v[,1]/2,
        length = 0.15, col = "dodgerblue2", lwd = 2)
 
 plot3D::contour2D(x = vx, y = vy, Ymeanbc2, asp=1, nlevels = 20, col = "black", lwd = 2, 
-                  xaxs = "i", yaxs = "i", labcex = 1)
+                  xaxs = "i", yaxs = "i", labcex = 1, xlim = c(-0.5, 10.5))
 points(obs$x, pch=20, col = "red", cex = 2)
 title(main = "mean GP with no-flow \n and cst head boundaries")
 
@@ -933,13 +889,6 @@ sigma <- 0.2
 GP <- gpCond(obs = obs, targ = targ, covModels = covModels, 
                sigma = sigma, op = op)
 names(GP)
-```
-
-```
-## [1] "mean"   "cov"    "logLik" "xstar"
-```
-
-```r
 # GP$mean   = mean value at location xstar
 # GP$cov    = covariance matrix of the conditioned GP
 # GP$logLik = log-likelihood of the conditioned GP
