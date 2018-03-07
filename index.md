@@ -4,7 +4,7 @@ title: Home
 date: 2018-03-07
 ---
 
-# R Course
+# Gaussian Process Modelling
 
 <p class="message">
   Gaussian Process Modelling
