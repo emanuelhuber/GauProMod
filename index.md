@@ -12,7 +12,8 @@ date: 2018-03-07
 
 ## Content
 
-1. [readme](readme)
+[readme](readme)
+
 <!--
 
 2. [Learn some R basics](02_rbasics)

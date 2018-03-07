@@ -1,6 +1,8 @@
-# GauProMod
-Emanuel Huber  
-2018-03-06  
+---
+layout: page
+title: GauProMod
+date: 2018-02-12
+---
 
 
 
