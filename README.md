@@ -201,12 +201,12 @@ legend("topleft", legend = c("obs", "GP sim"), lty = c(NA, 1),
 
 
 
-#### Conditional Gaussian Process modelling with derivatives
+#### Conditional Gaussian Process modelling with derivative observations
 
-We define a new object `bc` (a list) defining the derivatives, with elements:
+We define a new object `bc` (a list) defining the derivative observations, with elements:
 
-- `x` the location of the derivative
-- `y` the value of the derivative
+- `x` the location of the derivative observations
+- `y` the value of the derivative observations
 - `sigma` the uncertainty (standard deviation) on the derivative value (`y`)
 
 
@@ -670,7 +670,7 @@ title(main = "anisotropic GP (scale + rotation): mean")
 ![](README_files/figure-html/plotani2-1.png)<!-- -->
 
 
-#### Gaussian process with derivative constraints
+#### Gaussian process with derivative observations
 
 
 Interpolation of hydraulic heads that accounts for no-flow boundary conditions
@@ -678,7 +678,7 @@ at the top and bottom model boundary (adapted from Kuhlman and Igúzquiz, 2010, 
 
 We create a new object `bc` (a list) with elements
 
-- `x` is the locations where we set the derivative of the Gaussian field, 
+- `x` is the locations where we set the derivative observations of the Gaussian field, 
 - `v` the gradient derivative, i.e., a unit vector normal to the no-flow boundary (or tangent to a constant-head boundary)
 - `y` is the value of the gradient (in this case `0` meaning that the gradient is flat)
 - `sigma` the standard deviation reprensenting the uncertainty on the value of the gradient (i.e., `y`).
