@@ -9,6 +9,9 @@ R functions for Gaussian process (GP) modelling. The core functions are coded
 in C++ and based on the EIGEN library (through RcppEigen)
 
 ## Notes
+
+Companion website (in construction): [http://emanuelhuber.github.io/GauProMod/](http://emanuelhuber.github.io/GauProMod/)
+
 Currently implemented/to do:
 - [x] Posterior Gaussian Process with Gaussian likelihood (Gaussian process
       conditioned to noise-free and noisy observations)
