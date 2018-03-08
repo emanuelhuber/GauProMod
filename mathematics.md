@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Installation
+title: Maths
 date: 2018-02-12
 ---
 
@@ -20,7 +20,7 @@ $$\mathbf{A} = \mathbf{L}\mathbf{L}'$$
 $$|\mathbf{L}| = \prod_i L_{ii} $$
 
 log determinant of a lower triangular matrix
-$$ \log \prod_i x_i = \sum_i \log x_i (log rule)$$
+$$ \log \prod_i x_i = \sum_i \log x_i$$
 
 Thus to calculate the log determinant of a symmetric positive definite matrix:
 
