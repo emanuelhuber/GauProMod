@@ -119,11 +119,14 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
     Hstar <- Hmat(xstar,op)
     A2 <- GPpredmean_rcpp(Kxx, Kstar, Kstarstar, y, H, Hstar)
     m <- qr(H)$rank
-    logLik <- - A2$logLik1 - sum(log(A2$logLik2)) - sum(log(A2$logLik3)) -
-                (nrow(Kxx)- m)/2 * log(2*pi)
+    # logLik <- - A2$logLik1 + A2$logLik2 - sum(log(A2$logLik3)) - 
+                 # sum(log(A2$logLik4)) - (nrow(Kxx)- m)/2 * log(2*pi)
+    logLik <- - A2$logLik1 - sum(log(A2$logLik2)) - 
+                 sum(log(A2$logLik3)) - (nrow(Kxx)- m)/2 * log(2*pi)
     A2["logLik1"] <- NULL
     A2["logLik2"] <- NULL
     A2["logLik3"] <- NULL
+    A2["logLik4"] <- NULL
     A2[["logLik"]] <- logLik
   }else{
     A2 <- GPpred_rcpp(Kxx, Kstar, Kstarstar, y)

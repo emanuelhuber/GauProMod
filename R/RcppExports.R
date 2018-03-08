@@ -2,18 +2,18 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 cholupdateL_rcpp <- function(L, V12, V22) {
-    .Call('GauProMod_cholupdateL_rcpp', PACKAGE = 'GauProMod', L, V12, V22)
+    .Call('_GauProMod_cholupdateL_rcpp', PACKAGE = 'GauProMod', L, V12, V22)
 }
 
 cholfac_rcpp <- function(A) {
-    .Call('GauProMod_cholfac_rcpp', PACKAGE = 'GauProMod', A)
+    .Call('_GauProMod_cholfac_rcpp', PACKAGE = 'GauProMod', A)
 }
 
 GPpred_rcpp <- function(K, Kstar, Kstarstar, y) {
-    .Call('GauProMod_GPpred_rcpp', PACKAGE = 'GauProMod', K, Kstar, Kstarstar, y)
+    .Call('_GauProMod_GPpred_rcpp', PACKAGE = 'GauProMod', K, Kstar, Kstarstar, y)
 }
 
 GPpredmean_rcpp <- function(K, Kstar, Kstarstar, y, H, Hstar) {
-    .Call('GauProMod_GPpredmean_rcpp', PACKAGE = 'GauProMod', K, Kstar, Kstarstar, y, H, Hstar)
+    .Call('_GauProMod_GPpredmean_rcpp', PACKAGE = 'GauProMod', K, Kstar, Kstarstar, y, H, Hstar)
 }
 

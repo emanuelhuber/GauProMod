@@ -78,7 +78,7 @@ Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K,
   d2 =  L2.triangularView<Lower>().solve(H);
   w =	d2 * L.adjoint().triangularView<Lower>().solve(a);
   logLik1 = 0.5 * a.adjoint()*a;
-  logLik1 += 0.5 * w.adjoint()*w;
+  logLik1 -= 0.5 * w.adjoint()*w;
   logLik2 = L.diagonal();
   logLik3 = L2.diagonal();
 

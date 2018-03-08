@@ -6,6 +6,11 @@
 \usage{
 covfx(r, covModel)
 }
+\arguments{
+\item{r}{vector of distance}
+
+\item{covModel}{Covariance mdoel}
+}
 \description{
 Return covariance as a function of distance
 }

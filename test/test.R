@@ -2,11 +2,74 @@
 if(!require("devtools")) install.packages("devtools")
 devtools::install_github("emanuelhuber/GauProMod")
 
+devtools::install_local("/media/huber/Elements/UNIBAS/software/codeR/package_GauProMod/GauProMod")
+
 
 
 library(GauProMod)
 library(plot3D)
 library(RColorBrewer)
+
+#------------------------------------------------------------------------------#
+
+
+#observations
+obs <- list(x=c(-4, -3, -1, 0, 4),
+            y=c(-2,  0,  1, 2, 0))
+# targets
+targ <- list("x"=seq(-4.5, 4.5, len = 200))
+
+covModel <- list(kernel="gaussian",
+                 l = 0.7,   # correlation length
+                 h = 1.)  # std. deviation
+
+# linear mean function
+op <- 2
+
+sigma <- 0.2
+
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+             sigma = sigma, op = op)
+names(GP)
+# GP$mean   = mean value at location xstar
+# GP$cov    = covariance matrix of the conditioned GP
+# GP$logLik = log-likelihood of the conditioned GP
+# GP$xstar  = x-coordinates at which the GP is simulated
+
+#--- plot mean +/- sd
+xp <-(GP$mean + sqrt(diag(GP$cov)))  # mean + sd
+xm <-(GP$mean - sqrt(diag(GP$cov)))  # mean - sd
+
+# initialise the plot
+plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
+     xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
+     pch = 20, col = "black", main = GP$logLik) 
+lines(GP$xstar, GP$mean,col="red")  # mean
+lines(GP$xstar, xm,lty=3)            # + sd
+lines(GP$xstar, xp,lty=3)            # - sd
+legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
+       pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------------------------------------#
 
 M <- matrix(c(1L, 0L, 0L, 1L), nrow = 2)
 cholfac(M)
