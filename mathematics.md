@@ -75,7 +75,7 @@ Algorithm of Rasmussen and Williams (2006):
 3. $\bar{f}_\star \leftarrow K_\star^T \alpha$
 4. $v \leftarrow L\K_\star$
 5. $Var(f_\star) \leftarrow K_{\star\star} - v^T v$
-6. $\log(p(y|X)) \leftarrow -\frac{1}{2} y^T \alpha - \sum_i \log L_{ii} - \frac{n}{2}\log 2\pi$
+6. $\log(p(y\mid X)) \leftarrow -\frac{1}{2} y^T \alpha - \sum_i \log L_{ii} - \frac{n}{2}\log 2\pi$
 
 Algorithm of RGauProMod (here, we write $K$ for $(K + \sigma^2 I)$):
 
