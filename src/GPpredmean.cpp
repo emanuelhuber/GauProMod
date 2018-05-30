@@ -42,7 +42,8 @@ Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K,
 	
   
   // cholesky factor L such that K = LL^T	
-  L =  K.adjoint().llt().matrixL();	
+  //L =  K.adjoint().llt().matrixL();	
+  L =  K.llt().matrixL();
   // d=L^-1 H^T (forward substitiution)
   d = L.triangularView<Lower>().solve(H.adjoint());
   //dT = L.triangularView<Upper>().solve(H);

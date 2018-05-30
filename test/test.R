@@ -242,3 +242,4 @@ plot3D::contour2D(x = vx, y = vy, YSD, asp=1)
 points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 title(main = "standard deviation")
+

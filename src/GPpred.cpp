@@ -18,24 +18,25 @@ Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K,
   int n = K.rows();
   int kk = Kstarstar.cols();
 
-  Eigen::MatrixXd L(n, n);
+  Eigen::MatrixXd L(n, n);   //lower triangular matrix
   Eigen::VectorXd M(kk);	// Mean
   Eigen::MatrixXd C(kk, kk);	// covariance
   Eigen::MatrixXd bt(kk, kk);	
-  Eigen::MatrixXd btb(kk, kk);	
+  Eigen::MatrixXd vtv(kk, kk);	
   Eigen::VectorXd a(kk);
   Eigen::VectorXd logLik1(1);
   Eigen::VectorXd logLik2(n);
 
-  // chol(K)	
-  L =  K.adjoint().llt().matrixL();	
+  // // cholesky factor L such that K = LL^T	
+  //L =  K.adjoint().llt().matrixL();	
+  L =  K.llt().matrixL();
   bt = (L.triangularView<Lower>().solve(Kstar)).adjoint();
   a = L.triangularView<Lower>().solve(y);
   // Mean
   M = bt * a;
-  btb = MatrixXd(kk,kk).setZero().selfadjointView<Lower>().rankUpdate(bt);
+  vtv = MatrixXd(kk,kk).setZero().selfadjointView<Lower>().rankUpdate(bt);
   // covariance
-  C = Kstarstar - btb;
+  C = Kstarstar - vtv;
   // log-likelihood
   logLik1 = 0.5 * a.adjoint() * a;
   logLik2 = L.diagonal();
