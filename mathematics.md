@@ -77,7 +77,7 @@ Algorithm of Rasmussen and Williams (2006):
 5. $Var(f_\star) \leftarrow K_{\star\star} - v^T v$
 6. $\log(p(y\mid X)) \leftarrow -\frac{1}{2} y^T \alpha - \sum_i \log L_{ii} - \frac{n}{2}\log 2\pi$
 
-Algorithm of RGauProMod (here, we write $K$ for $(K + \sigma^2 I)$):
+Algorithm of GauProMod, file [GPpred.cpp](https://github.com/emanuelhuber/GauProMod/blob/master/src/GPpred.cpp) (note that here we write $K$ for $(K + \sigma^2 I)$):
 
 1. Compute $L$ with the cholesky decomposition, i.e., 
     ```cpp 
@@ -109,6 +109,8 @@ Algorithm of RGauProMod (here, we write $K$ for $(K + \sigma^2 I)$):
 
 See book of [Rasmussen and Williams (2006)](http://www.gaussianprocess.org/gpml/), chap. 2.7, page 27-29.  
 
+Algorithm of GauProMod, file [GPpredmean.cpp](https://github.com/emanuelhuber/GauProMod/blob/master/src/GPpredmean.cpp):
+
 See my notes...
 
 ![notes](img/IMG_0233_mod.JPG)
@@ -121,23 +123,47 @@ See my notes...
 <!--
 $$\forall x \in R$$
 -->
-Cholesky decomposition
+Knowing that:
 
-$$\mathbf{A} = \mathbf{L}\mathbf{L}'$$ 
+1. Cholesky decomposition of positive definite matrix $\mathbf{A}$
 
-determinant of a lower triangular matrix
+    $$\mathbf{A} = \mathbf{L}\mathbf{L}^T$$ 
 
-$$|\mathbf{L}| = \prod_i L_{ii} $$
+2. determinant of a positive definite matrix $\mathbf{A}$:
 
-log determinant of a lower triangular matrix
+    $$
+    \begin{aligned}
+      \det(\mathbf{A}) &= \det(\mathbf{L}\mathbf{L}^T)\\
+              &= \det(\mathbf{L})\det(\mathbf{L}^T)\\
+              &= \det(\mathbf{L})^2
+    \end{aligned}
+    $$
 
-$$ \log \prod_i x_i = \sum_i \log x_i$$
 
-Thus to calculate the log determinant of a symmetric positive definite matrix:
+3. log rule
+
+    $$\log \prod_i x_i = \sum_i \log x_i$$
+4. determinant of a lower triangular matrix
+
+    $$\det(\mathbf{L}) = \prod_i L_{ii}$$
+    
+    
+the log determinant of positive definite matrices is:
+    $$
+    \begin{aligned}    
+       \log(\det(\mathbf{A})) &= 2 \log(\det(\mathbf{L}))\\
+                              &= 2 \log(\prod_i L_{ii})\\
+                              &= 2 \sum_i \log(L_{ii})\\
+    \end{aligned}
+    $$
+
+
+    
+Thus to calculate the log determinant of a symmetric positive definite matrix in R:
 
 
 ```r
-L <- chol(A);
+L <- chol(A)
 logdetA <- 2*sum(log(diag(L)))
 ```
 
