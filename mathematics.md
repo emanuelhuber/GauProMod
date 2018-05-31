@@ -6,7 +6,7 @@ date: 2018-02-12
 
 ## Cholesky decomposition
 
-$$\mathbf{A} = \mathbf{L}\mathbf{L}^T$$ 
+$$\mathbf{A} = \mathbf{L}\mathbf{L}^T $$
 
 with $L$ a lower triangular matrix 
 
@@ -64,7 +64,7 @@ with $b = L^{-1}K_\star$ and $a = L^{-1}y$
 
 See book of [Rasmussen and Williams (2006)](http://www.gaussianprocess.org/gpml/), chap. 2, page 19.
 
-Predictive mean: $\bar{f}_\star = K_\star^T (K + \sigma^2 I)^{-1}y$
+Predictive mean: $\bar{f_\star} = K_\star^T (K + \sigma^2 I)^{-1}y$
 
 Predictive variance:  $Var(f_\star) = K_{\star\star}^T  - K_\star^T (K + \sigma^2 I)^{-1}K_\star$
 
