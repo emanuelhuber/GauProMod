@@ -168,3 +168,9 @@ L <- chol(A)
 logdetA <- 2*sum(log(diag(L)))
 ```
 
+## Determinant od the exponential of a matrix $\mathbf{B}$
+
+$$\det(\exp(\mathbf{B})) = \exp(\mathrm{tr}(\mathbf{B}))$$
+
+See the proof [here](http://applet-magic.com/determinanttheorem.htm)
+
