@@ -87,11 +87,11 @@ Algorithm of GauProMod, file [GPpred.cpp](https://github.com/emanuelhuber/GauPro
     ```cpp 
     bt = (L.triangularView<Lower>().solve(Kstar)).adjoint();
     ```
-3. We compute $a = L^{-1}yT$ by solving $La = y$ for $aT$ (see Case 3.2)
+3. We compute $a = L^{-1}y$ by solving $La = y$ for $a$ (see Case 3.2)
     ```cpp 
     a = L.triangularView<Lower>().solve(y);
     ```    
-4. We compute the mean of the Gaussian process: $b^Ta = K_\star^T K^{-1}y$
+4. We compute the mean of the Gaussian process: $\bar{f_\star} = b^Ta = K_\star^T K^{-1}y$
     ```cpp 
     M = bt * a;
     ```      
@@ -99,7 +99,7 @@ Algorithm of GauProMod, file [GPpred.cpp](https://github.com/emanuelhuber/GauPro
     ```cpp 
     btb = MatrixXd(kk,kk).setZero().selfadjointView<Lower>().rankUpdate(bt);
     ``` 
-6. We compute the covariance of the Gaussian process: $K_{\star\star}^T  - K_\star^T (K + \sigma^2 I)^{-1}K_\star$
+6. We compute the covariance of the Gaussian process: $Var(f_\star) = K_{\star\star}^T  - K_\star^T (K + \sigma^2 I)^{-1}K_\star$
     ```cpp 
     C = Kstarstar - vtv;
     ``` 
