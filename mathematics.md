@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Maths
-date: 2018-02-12
+date: 2018-05-31
 ---
 
 ## Cholesky decomposition
@@ -149,13 +149,14 @@ Knowing that:
     
     
 the log determinant of positive definite matrices is:
-    $$
-    \begin{aligned}    
-       \log(\det(\mathbf{A})) &= 2 \log(\det(\mathbf{L}))\\
-                              &= 2 \log(\prod_i L_{ii})\\
-                              &= 2 \sum_i \log(L_{ii})\\
-    \end{aligned}
-    $$
+
+$$
+\begin{aligned}    
+   \log(\det(\mathbf{A})) &= 2 \log(\det(\mathbf{L}))\\
+                          &= 2 \log(\prod_i L_{ii})\\
+                          &= 2 \sum_i \log(L_{ii})\\
+\end{aligned}
+$$
 
 
     
