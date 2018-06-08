@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Maths
+title: Implementation
 date: 2018-05-31
 ---
 
@@ -31,6 +31,8 @@ $$
 \begin{aligned}
   H^T A^{-1} H &= H^T (LL^T)^{-1} H\\
                &= H^T (L^T)^{-1} L^{-1} H\\
+               &= (L^{-1} H)^T (L^{-1} H)\\
+               &= v^Tv
 \end{aligned}
 $$
 
