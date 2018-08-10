@@ -35,7 +35,10 @@ Current features:
 - [ ] Gaussian Process approximations (to deal with larger data set)
 - [ ] add other covariance models
 
-This is an ongoing project. If you have any questions, requirements, suggestions, don't hesitate to contact me: emanuel.huber@alumni.ethz.ch
+This is an ongoing project. If you have any questions, requirements, suggestions, 
+don't hesitate to contact me (in english, french or german):
+<br/><a href="mailto:emanuel.huber@alumni.ethz.ch">emanuel.huber@alumni.ethz.ch</a></p>
+
 
 Thank you!
 
