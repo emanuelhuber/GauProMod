@@ -44,12 +44,36 @@ Thank you!
 
 # How to install/load
 
+## 1. Install R
+
+Download R from the [R Cran website](http://cran.r-project.org) and install it.
+2. Optionally install a R-editor:
+  * [Notepad++](https://notepad-plus-plus.org/) combined with [NppToR](https://sourceforge.net/projects/npptor/)
+  * [Rstudio](https://www.rstudio.com/)
+  * [RKward](https://rkward.kde.org/)
+3. If necessary, learn some R basics:
+  * [An interactive introduction to R](http://tryr.codeschool.com)
+  * [Short R introduction](http://cran.r-project.org/doc/contrib/Torfs+Brauer-Short-R-Intro.pdf) 
+  * [R course](http://www.rochester.edu/college/psc/thestarlab/help/rcourse/R-Course.pdf)
+
+
+## 2. Install a R-editor [optionally]
+
+Possible R-editor choice:
+* [Rstudio](https://www.rstudio.com/) (recommanded if you start)
+* [Notepad++](https://notepad-plus-plus.org/) combined with [NppToR](https://sourceforge.net/projects/npptor/)
+* [RKward](https://rkward.kde.org/)
+
+
+## 3. Install & load `GauProMod`
 
 ```r
 if(!require("devtools")) install.packages("devtools")
 devtools::install_github("emanuelhuber/GauProMod")
 library(GauProMod)
 ```
+
+
 
 <!--
 

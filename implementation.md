@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Implementation
-date: 2018-05-31
+date: 2018-08-10
 ---
 
 ## 1. Cholesky decomposition
