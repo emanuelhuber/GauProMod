@@ -4,15 +4,18 @@ title: Implementation
 date: 2018-05-31
 ---
 
-## Cholesky decomposition
+## 1. Cholesky decomposition
+
+The Cholesky decomposition of a Hermitian positive-definite matrix $\mathbf{A}$ is
 
 $$\mathbf{A} = \mathbf{L}\mathbf{L}^T $$
 
-with $L$ a lower triangular matrix 
+with $L$ a lower triangular matrix .
 
-## Solving/computing with Cholesky decomposition
+## 2. Solving and computing with Cholesky decomposition
 
-### Case 1: $A = LL^T$
+### a. Solve $A x = b$ for $x$
+
 Solve $A x = b$ for $x$ knowing that $A = LL^T$,
 with $L$ a lower triangular matrix.
 
@@ -23,7 +26,7 @@ We write $\alpha = L^T x$.
 1. Solve $L \alpha = b$ for $\alpha$ by forward substitution.
 2. Solve $L^T x = \alpha$ for $x$ by backward substitution.
 
-### Case 2: $H^T A^{-1} H$
+### b. Compute $H^T A^{-1} H$
 Compute $H^T A^{-1} H$ knowing that $A = LL^T$, 
 with $L$ a lower triangular matrix.
 
@@ -42,7 +45,7 @@ with $v = L^{-1}H$
 2. Compute the crossproduct $v^Tv$.
 
 
-### Case 3: $K_\star^T K^{-1} y$
+### c. Compute $K_\star^T K^{-1} y$
 Compute $K_\star^T K^{-1} y$ knowing that $K_\star$ and $K$ are positive-definite,
 and $K = LL^T$ with $L$ a lower triangular matrix.
 
@@ -62,7 +65,7 @@ with $b = L^{-1}K_\star$ and $a = L^{-1}y$
 3. Compute the cross-product $b^Ta$!
 
 
-## Predictions and log marginal likelihood for Gaussian process regression
+## 3. Predictions and log marginal likelihood for Gaussian process regression
 
 See book of [Rasmussen and Williams (2006)](http://www.gaussianprocess.org/gpml/), chap. 2, page 19.
 
@@ -107,7 +110,7 @@ Algorithm of GauProMod, file [GPpred.cpp](https://github.com/emanuelhuber/GauPro
     ``` 
 
 
-## Predictions and log marginal likelihood for Gaussian process regression with explicit basis functions
+## 4. Predictions and log marginal likelihood for Gaussian process regression with explicit basis functions
 
 See book of [Rasmussen and Williams (2006)](http://www.gaussianprocess.org/gpml/), chap. 2.7, page 27-29.  
 
@@ -119,7 +122,7 @@ See my notes...
     
     
 
-## Log determinant of positive definite matrices
+## 5. Log determinant of positive definite matrices
 
 
 <!--
@@ -170,7 +173,7 @@ L <- chol(A)
 logdetA <- 2*sum(log(diag(L)))
 ```
 
-## Determinant od the exponential of a matrix $\mathbf{B}$
+## 6. Determinant od the exponential of a matrix $\mathbf{B}$
 
 $$\det(\exp(\mathbf{B})) = \exp(\mathrm{tr}(\mathbf{B}))$$
 
