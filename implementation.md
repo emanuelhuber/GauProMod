@@ -14,7 +14,7 @@ with $L$ a lower triangular matrix .
 
 ## 2. Solving and computing with Cholesky decomposition
 
-### a. Solve $A x = b$ for $x$
+### 2.a. Solve $A x = b$ for $x$
 
 Solve $A x = b$ for $x$ knowing that $A = LL^T$,
 with $L$ a lower triangular matrix.
@@ -26,7 +26,7 @@ We write $\alpha = L^T x$.
 1. Solve $L \alpha = b$ for $\alpha$ by forward substitution.
 2. Solve $L^T x = \alpha$ for $x$ by backward substitution.
 
-### b. Compute $H^T A^{-1} H$
+### 2.b. Compute $H^T A^{-1} H$
 Compute $H^T A^{-1} H$ knowing that $A = LL^T$, 
 with $L$ a lower triangular matrix.
 
@@ -45,7 +45,7 @@ with $v = L^{-1}H$
 2. Compute the crossproduct $v^Tv$.
 
 
-### c. Compute $K_\star^T K^{-1} y$
+### 2.c. Compute $K_\star^T K^{-1} y$
 Compute $K_\star^T K^{-1} y$ knowing that $K_\star$ and $K$ are positive-definite,
 and $K = LL^T$ with $L$ a lower triangular matrix.
 
@@ -88,11 +88,11 @@ Algorithm of GauProMod, file [GPpred.cpp](https://github.com/emanuelhuber/GauPro
     ```cpp 
     L = K.llt().matrixL());
     ```
-2. We compute $b^T = (L^{-1}K_\star)^T$ by solving $L^Tb^T = K_\star^T$ for $b^T$ (see Case 3.1)
+2. We compute $b^T = (L^{-1}K_\star)^T$ by solving $L^Tb^T = K_\star^T$ for $b^T$ (see Section 2.c.1)
     ```cpp 
     bt = (L.triangularView<Lower>().solve(Kstar)).adjoint();
     ```
-3. We compute $a = L^{-1}y$ by solving $La = y$ for $a$ (see Case 3.2)
+3. We compute $a = L^{-1}y$ by solving $La = y$ for $a$ (see Section 2.c.2)
     ```cpp 
     a = L.triangularView<Lower>().solve(y);
     ```    
@@ -100,7 +100,7 @@ Algorithm of GauProMod, file [GPpred.cpp](https://github.com/emanuelhuber/GauPro
     ```cpp 
     M = bt * a;
     ```      
-5. We compute $K_\star^T (K + \sigma^2 I)^{-1}K_\star = v^T v$ (see Case 2)
+5. We compute $K_\star^T (K + \sigma^2 I)^{-1}K_\star = v^T v$ (see Section 2.b)
     ```cpp 
     btb = MatrixXd(kk,kk).setZero().selfadjointView<Lower>().rankUpdate(bt);
     ``` 
