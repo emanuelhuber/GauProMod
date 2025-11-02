@@ -1,10 +1,8 @@
 ---
 title: GauProMod
 author: "Emanuel Huber"
-date: "2018-03-06"
-output:
-  html_document:
-    keep_md: true
+date: "2018-05-31"
+output: github_document
 ---
 
 
@@ -17,6 +15,7 @@ in C++ and based on the EIGEN library (through RcppEigen)
 
 ## Notes
 Currently implemented/to do:
+
 - [x] Posterior Gaussian Process with Gaussian likelihood (Gaussian process
       conditioned to noise-free and noisy observations)
 - [x] Space-time Gaussian process 
@@ -251,7 +250,7 @@ arrows(x0 = bc$x - 1/2, y0 = y0 - bc$y/2,
 To understand everything, please read the previous section ("1D Gaussian
 Process Modelling").
 
-I you want to simulate a Gaussian process on a two-dimensional mesh, go to
+If you want to simulate a Gaussian process on a two-dimensional mesh, go to
 the section "2D Gaussian Process Modelling (simulation on a 2D mesh)".
 
 #### Observations and  target

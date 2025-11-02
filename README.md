@@ -1,55 +1,49 @@
-# GauProMod
-Emanuel Huber  
-2018-03-06  
+GauProMod
+================
+Emanuel Huber
+2018-05-31
 
+R functions for Gaussian process (GP) modelling. The core functions are coded in C++ and based on the EIGEN library (through RcppEigen)
 
-
-
-R functions for Gaussian process (GP) modelling. The core functions are coded 
-in C++ and based on the EIGEN library (through RcppEigen)
-
-## Notes
-
-Companion website (in construction): [http://emanuelhuber.github.io/GauProMod/](http://emanuelhuber.github.io/GauProMod/)
+Notes
+-----
 
 Currently implemented/to do:
-- [x] Posterior Gaussian Process with Gaussian likelihood (Gaussian process
-      conditioned to noise-free and noisy observations)
-- [x] Space-time Gaussian process 
-- [x] Gaussian Process with monomial mean functions with vague Gaussian prior
-      on the coefficient parameters.
-- [x] Gaussian Process conditioned to derivative observations
-- [x] Anisotropic covariance functions (scale and rotation)
-- [x] Log marginal likelihood of the Gaussian process
-- [x] Cross-matrix distance (distance between every rows of each matrix):
-      `crossdist(x,y,M)` (with `M` a positive semidefinite matrix for
-      anisotropic distances)
-- [x] Covariance function: Matern, Gaussian, linear
-- [ ] maximum likelihood hyper-parameter estimation
-- [ ] McMC hyper-parameter sampling
-- [ ] spatially varying covariance function
-- [ ] Gaussian Process approximations (to deal with larger data set)
-- [ ] add other covariance models
 
-This is an ongoing project.
-If you have any questions, don't hesitate to contact me:
+-   \[x\] Posterior Gaussian Process with Gaussian likelihood (Gaussian process conditioned to noise-free and noisy observations)
+-   \[x\] Space-time Gaussian process
+-   \[x\] Gaussian Process with monomial mean functions with vague Gaussian prior on the coefficient parameters.
+-   \[x\] Gaussian Process conditioned to derivative observations
+-   \[x\] Anisotropic covariance functions (scale and rotation)
+-   \[x\] Log marginal likelihood of the Gaussian process
+-   \[x\] Cross-matrix distance (distance between every rows of each matrix): `crossdist(x,y,M)` (with `M` a positive semidefinite matrix for anisotropic distances)
+-   \[x\] Covariance function: Matern, Gaussian, linear
+-   \[ \] maximum likelihood hyper-parameter estimation
+-   \[ \] McMC hyper-parameter sampling
+-   \[ \] spatially varying covariance function
+-   \[ \] Gaussian Process approximations (to deal with larger data set)
+-   \[ \] add other covariance models
 
-emanuel.huber@alumni.ethz.ch
+This is an ongoing project. If you have any questions, don't hesitate to contact me:
+
+<emanuel.huber@alumni.ethz.ch>
 
 Thank you!
 
-## How to install/load
+How to install/load
+-------------------
 
-
-```r
+``` r
 if(!require("devtools")) install.packages("devtools")
 devtools::install_github("emanuelhuber/GauProMod")
 ```
 
-## Short tutorial
+Short tutorial
+--------------
+
 ### Load libraries
 
-```r
+``` r
 library(GauProMod)
 library(plot3D)
 library(RColorBrewer)
@@ -57,23 +51,23 @@ library(RColorBrewer)
 
 ### 1D Gaussian Process Modelling
 
-#### Observations and  target
-The observations are defined by a list with `x` the positions of the 
-observations and `y` the observed values. The targets are the positions `x` 
-where to simulate the Gaussian Process.
+#### Observations and target
 
+The observations are defined by a list with `x` the positions of the observations and `y` the observed values. The targets are the positions `x` where to simulate the Gaussian Process.
 
-```r
+``` r
 #observations
 obs <- list(x=c(-4, -3, -1, 0, 4),
             y=c(-2,  0,  1, 2, 0))
 # targets
 targ <- list("x"=seq(-10,10,len=200))
 ```
+
 #### Covariance function, mean function and likelihood
+
 To build the covariance functions, the following kernels are available
 
-```r
+``` r
 # linear kernel
 covModel <- list(kernel="linear",
                  b = 1,         # slope
@@ -94,7 +88,7 @@ covModel <- list(kernel="gaussian",
 
 ##### Covariance as a function of distance
 
-```r
+``` r
 covModel <- list(kernel="matern",
                  l = 5,     # correlation length
                  v = 1,     # smoothness
@@ -106,13 +100,11 @@ plot(r, myCov, type = "l", ylim = c(0, max(myCov)),
      ylab = "covariance", xlab = "distance", xaxs = "i", yaxs = "i")
 ```
 
-![](README_files/figure-html/plotCov-1.png)<!-- -->
+![](inst/figure-markdown_github/plotCov-1.png)
 
-The following mean function (or basis functions) are available 
-(see Rasmussen and Williams (2006), Section 2.7): 
+The following mean function (or basis functions) are available (see Rasmussen and Williams (2006), Section 2.7):
 
-
-```r
+``` r
 # quadratic mean function
 op <- 2
 # linear mean function
@@ -121,15 +113,9 @@ op <- 1
 op <- 0 
 ```
 
-Because nothing is perfectly observed, it makes sense to account for uncertainty
-in the observation. Gaussian likelihood, defined by the standard deviation 
-`sigma` (erreur uncertainty) is the only form of likelihood 
-currently implemented in GauProMod.
-Sigma must be either a length-one vector or has exactly the same length as the
-observations values
+Because nothing is perfectly observed, it makes sense to account for uncertainty in the observation. Gaussian likelihood, defined by the standard deviation `sigma` (erreur uncertainty) is the only form of likelihood currently implemented in GauProMod. Sigma must be either a length-one vector or has exactly the same length as the observations values
 
-
-```r
+``` r
 # standard deviation measurement error
 # Gaussian likelihood
 sigma <- 0.2
@@ -137,11 +123,9 @@ sigma <- 0.2
 sigma <- abs(rnorm(length(obs$y)))
 ```
 
-
 #### Conditional Gaussian Process modelling
 
-
-```r
+``` r
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
@@ -153,8 +137,7 @@ names(GP)
 
 Plot the mean function plus/minus the standard deviation
 
-
-```r
+``` r
 #--- plot mean +/- sd
 xp <-(GP$mean + sqrt(diag(GP$cov)))  # mean + sd
 xm <-(GP$mean - sqrt(diag(GP$cov)))  # mean - sd
@@ -170,27 +153,22 @@ legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
        pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
 ```
 
-![](README_files/figure-html/mean1D-1.png)<!-- -->
-       
+![](inst/figure-markdown_github/mean1D-1.png)
+
 Random conditional simulation
 
-
-```r
+``` r
 # cholesky factorisation
 L <- cholfac(GP$cov)
 # random simulation
 ystar <- gpSim(GP , L = L)
 ```
 
-You can also directly use `ystar <- gpSim(GP)` without the argument `L` (the
-Cholesky factor) but each time you will call `gpSim(GP)`, `gpSim` will 
-compute again internally the Cholesky factor. So, if you plan to run many 
-unconditional simulations, it is faster to first compute the Cholesky factor
-and then run several time `gpSim` with the argument `L`.
+You can also directly use `ystar <- gpSim(GP)` without the argument `L` (the Cholesky factor) but each time you will call `gpSim(GP)`, `gpSim` will compute again internally the Cholesky factor. So, if you plan to run many unconditional simulations, it is faster to first compute the Cholesky factor and then run several time `gpSim` with the argument `L`.
 
 Plot the random simulation:
 
-```r
+``` r
 plot(rbind(cbind(obs$x, obs$y), ystar), type="n", xlab="x", ylab="y") 
 lines(ystar, col = "blue")
 points(cbind(obs$x, obs$y), col = "black", pch = 20)
@@ -198,20 +176,17 @@ legend("topleft", legend = c("obs", "GP sim"), lty = c(NA, 1),
        pch = c(20, NA), col=c("black", "blue"), bty="n")
 ```
 
-![](README_files/figure-html/plotrandom1D-1.png)<!-- -->
-
-
+![](inst/figure-markdown_github/plotrandom1D-1.png)
 
 #### Conditional Gaussian Process modelling with derivatives
 
 We define a new object `bc` (a list) defining the derivatives, with elements:
 
-- `x` the location of the derivative
-- `y` the value of the derivative
-- `sigma` the uncertainty (standard deviation) on the derivative value (`y`)
+-   `x` the location of the derivative
+-   `y` the value of the derivative
+-   `sigma` the uncertainty (standard deviation) on the derivative value (`y`)
 
-
-```r
+``` r
 covModel <- list(kernel = "matern",
                  l = 0.25,
                  v = 3.5,
@@ -233,9 +208,17 @@ GP2 <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel),
 xp <-(GP$mean + sqrt(diag(GP$cov)))  # mean + sd
 xm <-(GP$mean - sqrt(diag(GP$cov)))  # mean - sd
 xp2 <-(GP2$mean + sqrt(diag(GP2$cov)))  # mean + sd
+```
+
+    ## Warning in sqrt(diag(GP2$cov)): NaNs produced
+
+``` r
 xm2 <-(GP2$mean - sqrt(diag(GP2$cov)))  # mean - sd
+```
 
+    ## Warning in sqrt(diag(GP2$cov)): NaNs produced
 
+``` r
 plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
      xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
      pch = 20, col = "black", main = "without derivatives") 
@@ -246,9 +229,9 @@ legend("topleft", legend = c("obs", "mean", "sd"), lty = c(NA, 1, 3),
        pch = c(20, NA, NA), col=c("black", "red", "black"), bty="n")
 ```
 
-![](README_files/figure-html/gpCond1D_deriv-1.png)<!-- -->
+![](inst/figure-markdown_github/gpCond1D_deriv-1.png)
 
-```r
+``` r
 plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
      xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
      pch = 20, col = "black", main = "with derivatives") 
@@ -263,38 +246,28 @@ arrows(x0 = bc$x - 1/2, y0 = y0 - bc$y/2,
        length = 0.15, col = "dodgerblue2", lwd = 2)
 ```
 
-![](README_files/figure-html/gpCond1D_deriv-2.png)<!-- -->
+![](inst/figure-markdown_github/gpCond1D_deriv-2.png)
 
 ### Gaussian Process Modelling with two dimensional "positions"
 
-To understand everything, please read the previous section ("1D Gaussian
-Process Modelling").
+To understand everything, please read the previous section ("1D Gaussian Process Modelling").
 
-I you want to simulate a Gaussian process on a two-dimensional mesh, go to
-the section "2D Gaussian Process Modelling (simulation on a 2D mesh)".
+If you want to simulate a Gaussian process on a two-dimensional mesh, go to the section "2D Gaussian Process Modelling (simulation on a 2D mesh)".
 
-#### Observations and  target
-The observations are defined by a list with `x` the positions of the 
-observations and `y` the observed values. 
-Here, the element `x` of the observation list is a matrix corresponding to
-the coordinates of the observations points (East/North coordinates or 
-x/y coordinates).
+#### Observations and target
 
+The observations are defined by a list with `x` the positions of the observations and `y` the observed values. Here, the element `x` of the observation list is a matrix corresponding to the coordinates of the observations points (East/North coordinates or x/y coordinates).
 
-
-
-```r
+``` r
 #observations
 obs <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31),
                      c(1.33, 7.24, 4.26, 2.67, 6.17, 8.04, 3.18, 5.63, 8.33)),
             y = c(2.60, 1.48, 1.36, 8.61, 1.00, 1.58, 8.42, 8.39, 1.50))
 ```
 
-The target is defined by a two-columns matrix corresponding to the
-coordinates of the target points.
+The target is defined by a two-columns matrix corresponding to the coordinates of the target points.
 
-
-```r
+``` r
 # targets (=2D mesh)
 targ <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31, 
                        3.74, 5.93, 7.19, 6.61, 5.54, 2.27, 1.61, 4.02, 1.06),
@@ -304,10 +277,10 @@ targ <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31,
 ```
 
 #### Covariance function, mean function and likelihood
-To build the covariance functions, the same kernels as in the previously 
-defined are available:
 
-```r
+To build the covariance functions, the same kernels as in the previously defined are available:
+
+``` r
 # Matern kernel
 covModel <- list(kernel="matern",
                  l = 5,     # correlation length
@@ -316,10 +289,9 @@ covModel <- list(kernel="matern",
                 )
 ```
 
-Note that the 2D mean functions (or basis functions) are differently defined: 
+Note that the 2D mean functions (or basis functions) are differently defined:
 
-
-```r
+``` r
 # 2D quadratic mean function
 op <- 5
 # zero-mean function (no trend)
@@ -330,16 +302,14 @@ op <- 2
 
 Standard deviation (measurement error):
 
-```r
+``` r
 # Gaussian likelihood
 sigma <- 0.2
 ```
 
-
 #### Conditional Gaussian Process modelling
 
-
-```r
+``` r
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
@@ -349,8 +319,7 @@ names(GP)
 # GP$xstar  = x-coordinates at which the GP is simulated
 ```
 
-
-```r
+``` r
 # mean
 Ymean <- GP$mean
 # standard deviation
@@ -360,12 +329,12 @@ ysdminus <- Ymean + 1.95* YSD
 ```
 
 #### Results
+
 Plot the mean and standard deviation functions
 
 Three-dimensional plot
 
-
-```r
+``` r
 par(mfrow = c(1,1))
 ylim <- range(Ymean, obs$y)
 plot3D::scatter3D(x = targ$x[,1], y = targ$x[,2], z = Ymean, clim = ylim, 
@@ -378,12 +347,11 @@ plot3D::scatter3D(x = obs$x[,1], y = obs$x[,2], z = obs$y, add = TRUE,
                   pch = 20, cex = 3, clim = ylim)
 ```
 
-![](README_files/figure-html/3Dplot-1.png)<!-- -->
+![](inst/figure-markdown_github/3Dplot-1.png)
 
 Pair of two-dimensional plots
 
-
-```r
+``` r
 par(mfrow = c(1, 2))
 ylim <- range(ysdplus, ysdminus, obs$y)
 
@@ -396,12 +364,11 @@ arrows(targ$x[,2], ysdminus, targ$x[,2], ysdplus, length=0.05, angle=90, code=3)
 points(obs$x[,2], obs$y, col = "dodgerblue", pch = 20)
 ```
 
-![](README_files/figure-html/plot2D-1.png)<!-- -->
+![](inst/figure-markdown_github/plot2D-1.png)
 
 #### Random conditional simulation
 
-
-```r
+``` r
 L <- cholfac(GP$cov)
 ystar <- gpSim(GP , L = L)
 
@@ -414,27 +381,17 @@ plot3D::scatter3D(x = obs$x[,1], y = obs$x[,2], z = obs$y, add = TRUE,
                   pch = 20, cex = 3, clim = ylim)
 ```
 
-![](README_files/figure-html/chol2D-1.png)<!-- -->
-
-
-
-
+![](inst/figure-markdown_github/chol2D-1.png)
 
 ### 2D Gaussian Process Modelling (simulation on a 2D mesh)
-To understand everything, please read the previous section ("1D Gaussian
-Process Modelling").
 
-#### Observations and  target
-The observations are defined by a list with `x` the positions of the 
-observations and `y` the observed values. 
-Here, the element `x` of the observation list is a matrix corresponding to
-the coordinates of the observations points (East/North coordinates or 
-x/y coordinates).
+To understand everything, please read the previous section ("1D Gaussian Process Modelling").
 
+#### Observations and target
 
+The observations are defined by a list with `x` the positions of the observations and `y` the observed values. Here, the element `x` of the observation list is a matrix corresponding to the coordinates of the observations points (East/North coordinates or x/y coordinates).
 
-
-```r
+``` r
 #observations
 obs <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31, 
                        3.74, 5.93, 7.19, 6.61, 5.54, 2.27, 1.61, 4.02, 1.06),
@@ -444,12 +401,9 @@ obs <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31,
                   9.05, 1.14, 1.49, 9.19, 1.32, 1.03, 6.41, 6.16, 5.42))
 ```
 
-The target is defined by a regular grid defined by two orthogonal vectors.
-The function `vecGrid`returns a two-columns matrix corresponding to the
-coordinates of each element of the grid.
+The target is defined by a regular grid defined by two orthogonal vectors. The function `vecGrid`returns a two-columns matrix corresponding to the coordinates of each element of the grid.
 
-
-```r
+``` r
 # targets (=2D mesh)
 vx <- seq(0, 10, by = 0.5)
 vy <- seq(0, 10, by = 0.5)
@@ -457,10 +411,10 @@ targ <- list(x = vecGrid(vx, vy))
 ```
 
 #### Covariance function, mean function and likelihood
-To build the covariance functions, the same kernels as in the previously 
-defined are available:
 
-```r
+To build the covariance functions, the same kernels as in the previously defined are available:
+
+``` r
 # linear kernel
 covModel <- list(kernel="linear",
                  b = 1,         # slope
@@ -479,10 +433,9 @@ covModel <- list(kernel="gaussian",
                  h = 0.25)  # std. deviation
 ```
 
-Note that the 2D mean functions (or basis functions) are differently defined: 
+Note that the 2D mean functions (or basis functions) are differently defined:
 
-
-```r
+``` r
 # 2D quadratic mean function
 op <- 5
 # zero-mean function (no trend)
@@ -493,15 +446,14 @@ op <- 2
 
 Standard deviation (measurement error):
 
-```r
+``` r
 # Gaussian likelihood
 sigma <- 0.2
 ```
 
 #### Conditional Gaussian Process modelling
 
-
-```r
+``` r
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
                sigma = sigma, op = op)
 names(GP)
@@ -513,7 +465,7 @@ names(GP)
 
 Plot the mean and standard deviation functions
 
-```r
+``` r
 # mean
 Ymean <- matrix(GP$mean, nrow = length(vx), ncol = length(vy), byrow = TRUE)
 # standard deviation
@@ -540,13 +492,11 @@ rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 title(main = "standard deviation")
 ```
 
-![](README_files/figure-html/meanGrid-1.png)<!-- -->
+![](inst/figure-markdown_github/meanGrid-1.png)
 
-       
 Random conditional simulation
 
-
-```r
+``` r
 L <- cholfac(GP$cov)
 ystar <- gpSim(GP , L = L)
 
@@ -562,12 +512,11 @@ points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 ```
 
-![](README_files/figure-html/cholgrid-1.png)<!-- -->
+![](inst/figure-markdown_github/cholgrid-1.png)
 
 #### Anisotropy (scaling only along the coordinates axes)
 
-
-```r
+``` r
 covModelAni <- list(kernel="matern",
                  l = 1,       # correlation length
                  v = 2.5,     # smoothness
@@ -587,7 +536,7 @@ names(GP)
 
 Plot the mean and standard deviation functions
 
-```r
+``` r
 # mean
 YmeanAni <- matrix(GP$mean, nrow = length(vx), ncol = length(vy), byrow = TRUE)
 # standard deviation
@@ -614,13 +563,11 @@ rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 title(main = "anisotropic GP: mean")
 ```
 
-![](README_files/figure-html/meanani-1.png)<!-- -->
-
+![](inst/figure-markdown_github/meanani-1.png)
 
 #### Anisotropy (scaling and rotation along the coordinates axes)
 
-
-```r
+``` r
 covModelAni2 <- list(kernel="matern",
                  l = 1,       # correlation length
                  v = 2.5,     # smoothness
@@ -641,7 +588,7 @@ names(GP)
 
 Plot the mean and standard deviation functions
 
-```r
+``` r
 # mean
 YmeanAni2 <- matrix(GP$mean, nrow = length(vx), ncol = length(vy), byrow = TRUE)
 # standard deviation
@@ -668,25 +615,20 @@ rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 title(main = "anisotropic GP (scale + rotation): mean")
 ```
 
-![](README_files/figure-html/plotani2-1.png)<!-- -->
-
+![](inst/figure-markdown_github/plotani2-1.png)
 
 #### Gaussian process with derivative constraints
 
-
-Interpolation of hydraulic heads that accounts for no-flow boundary conditions
-at the top and bottom model boundary (adapted from Kuhlman and Igúzquiz, 2010, doi:10.1016/j.jhydrol.2010.01.002).
+Interpolation of hydraulic heads that accounts for no-flow boundary conditions at the top and bottom model boundary (adapted from Kuhlman and Igúzquiz, 2010, <doi:10.1016/j.jhydrol.2010.01.002>).
 
 We create a new object `bc` (a list) with elements
 
-- `x` is the locations where we set the derivative of the Gaussian field, 
-- `v` the gradient derivative, i.e., a unit vector normal to the no-flow boundary (or tangent to a constant-head boundary)
-- `y` is the value of the gradient (in this case `0` meaning that the gradient is flat)
-- `sigma` the standard deviation reprensenting the uncertainty on the value of the gradient (i.e., `y`).
+-   `x` is the locations where we set the derivative of the Gaussian field,
+-   `v` the gradient derivative, i.e., a unit vector normal to the no-flow boundary (or tangent to a constant-head boundary)
+-   `y` is the value of the gradient (in this case `0` meaning that the gradient is flat)
+-   `sigma` the standard deviation reprensenting the uncertainty on the value of the gradient (i.e., `y`).
 
-
-
-```r
+``` r
 obs <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31),
                       c(1.33, 7.24, 4.26, 2.67, 6.17, 8.04, 3.18, 5.63, 8.33)),
             y = c(2.60, 1.48, 1.36, 8.61, 1.00, 1.58, 8.42, 8.39, 1.50))
@@ -752,15 +694,14 @@ arrows(bc$x[,1] - bc$v[,2]/2, bc$x[,2] - bc$v[,1]/2,
        length = 0.15, col = "dodgerblue2", lwd = 2)
 ```
 
-![](README_files/figure-html/gp_deriv-1.png)<!-- -->
+![](inst/figure-markdown_github/gp_deriv-1.png)
 
 The same with:
 
-- no-flow condition at top and bottom model boundaries
-- constant-head boundary at left and right model boundaries
+-   no-flow condition at top and bottom model boundaries
+-   constant-head boundary at left and right model boundaries
 
-
-```r
+``` r
 #  no-flow boundary top and bottom
 bc2 <- list(x = cbind(c( rep(seq(0.5, 9.5, by = 2), 2),
                         rep(0, 5), rep(10, 5)),
@@ -800,43 +741,28 @@ arrows(bc2$x[,1] - bc2$v[,2]/2, bc2$x[,2] - bc2$v[,1]/2,
        length = 0.15, col = "dodgerblue2", lwd = 2)
 ```
 
-![](README_files/figure-html/deriv2-1.png)<!-- -->
-
-
-
-
+![](inst/figure-markdown_github/deriv2-1.png)
 
 ### Space-time Gaussian Process Modelling
 
 To understand everything, please read the previous sections.
 
-#### Observations and  target
-The observations are defined by a list with `x` the positions of the 
-observations, `y` the observed time-series and `t` the time scale. Note that all
-the time-series must have the same time scale.
-Here, the element `x` of the observation list is a matrix corresponding to
-the coordinates of the observations points (East/North coordinates or 
-x/y coordinates).
+#### Observations and target
 
-The element `y` is a big vector constiting of all the time-series recorded
-at the positions defined by element `x` put one after another. For example, 
-consider 5 monitoring stations with positions x<sub>1</sub>, x<sub>2</sub>, x<sub>3</sub>, x<sub>4</sub> and x<sub>5</sub>. 
-At each station, a time-series was recorded:
+The observations are defined by a list with `x` the positions of the observations, `y` the observed time-series and `t` the time scale. Note that all the time-series must have the same time scale. Here, the element `x` of the observation list is a matrix corresponding to the coordinates of the observations points (East/North coordinates or x/y coordinates).
 
-* at station 1: **y**<sub>1</sub> = y<sub>1,1</sub>, y<sub>1,2</sub>, ..., y<sub>1,t</sub>
-* at station 2: **y**<sub>2</sub> = y<sub>2,1</sub>, y<sub>2,2</sub>, ..., y<sub>2,t</sub>
-* ...
-* at station 5: **y**<sub>5</sub> = y<sub>5,1</sub>, y<sub>5,2</sub>, ..., y<sub>5,t</sub>
+The element `y` is a big vector constiting of all the time-series recorded at the positions defined by element `x` put one after another. For example, consider 5 monitoring stations with positions x<sub>1</sub>, x<sub>2</sub>, x<sub>3</sub>, x<sub>4</sub> and x<sub>5</sub>. At each station, a time-series was recorded:
 
-Then, the element `y` is set to c(**y**<sub>1</sub>, **y**<sub>2</sub>, **y**<sub>3</sub>, **y**<sub>4</sub>, 
-**y**<sub>5</sub>).
+-   at station 1: **y**<sub>1</sub> = y<sub>1,1</sub>, y<sub>1,2</sub>, ..., y<sub>1,t</sub>
+-   at station 2: **y**<sub>2</sub> = y<sub>2,1</sub>, y<sub>2,2</sub>, ..., y<sub>2,t</sub>
+-   ...
+-   at station 5: **y**<sub>5</sub> = y<sub>5,1</sub>, y<sub>5,2</sub>, ..., y<sub>5,t</sub>
 
-Assuming that the data were recorded every hour, the time scale `t` is simply
-1, 2, 3, ..., t.
+Then, the element `y` is set to c(**y**<sub>1</sub>, **y**<sub>2</sub>, **y**<sub>3</sub>, **y**<sub>4</sub>, **y**<sub>5</sub>).
 
+Assuming that the data were recorded every hour, the time scale `t` is simply 1, 2, 3, ..., t.
 
-
-```r
+``` r
 #observations
 obs <- list(x = cbind(c(2, 8, 1, 3, 5),
                       c(9, 2, 3, 4, 6)),
@@ -848,14 +774,9 @@ obs <- list(x = cbind(c(2, 8, 1, 3, 5),
             t = seq_len(10))
 ```
 
-The target is defined by a regular grid defined by two orthogonal vectors.
-The function `vecGrid`returns a two-columns matrix corresponding to the
-coordinates of each element of the grid. For each element of the grid, 
-the Gaussian process simulate a time-series whose time scale is identical
-to that of the observations.
+The target is defined by a regular grid defined by two orthogonal vectors. The function `vecGrid`returns a two-columns matrix corresponding to the coordinates of each element of the grid. For each element of the grid, the Gaussian process simulate a time-series whose time scale is identical to that of the observations.
 
-
-```r
+``` r
 # targets
 vx <- seq(0, 10, by = 0.5)
 vy <- seq(0, 10, by = 0.5)
@@ -863,13 +784,10 @@ targ <- list(x = vecGrid(vx, vy))
 ```
 
 #### Covariance function, mean function and likelihood
-Two covariance are defined, one for the space domain (element `pos`) and one
-for the time domain (element `time`). For the moment, the covariance function of
-the space-time Gaussian process is defined by the product of the spatial and
-temporal kernel.
 
+Two covariance are defined, one for the space domain (element `pos`) and one for the time domain (element `time`). For the moment, the covariance function of the space-time Gaussian process is defined by the product of the spatial and temporal kernel.
 
-```r
+``` r
 covModels <- list(pos =  list(kernel="matern",
                               l = 4,       # correlation length
                               v = 2.5,     # smoothness
@@ -887,8 +805,7 @@ sigma <- 0.2
 
 #### Conditional Gaussian Process modelling
 
-
-```r
+``` r
 GP <- gpCond(obs = obs, targ = targ, covModels = covModels, 
                sigma = sigma, op = op)
 names(GP)
@@ -898,12 +815,9 @@ names(GP)
 # GP$xstar  = x-coordinates at which the GP is simulated
 ```
 
-The mean values are re-organised into a three-dimensional array of dimension
-$n_t \times n_x \times n_y, with $n_t$ the number of time-step, and 
-$n_x \times n_y$ the dimension of the (spatial) target grid.
+The mean values are re-organised into a three-dimensional array of dimension $n\_t n\_x n\_y, with *n*<sub>*t*</sub> the number of time-step, and *n*<sub>*x*</sub> × *n*<sub>*y*</sub> the dimension of the (spatial) target grid.
 
-
-```r
+``` r
 Ymean <-  array(GP$mean, dim=c(length(obs$t), length(vx), length(vy)))
 Ysd <-  array(sqrt(diag(GP$cov)), dim=c(length(obs$t), length(vx), length(vy)))
 
@@ -916,9 +830,9 @@ for(i in seq_along(obs$t)){
 }
 ```
 
-![](README_files/figure-html/meanst-1.png)<!-- -->
+![](inst/figure-markdown_github/meanst-1.png)
 
-```r
+``` r
 par(mfrow = c(2,5))
 for(i in seq_along(obs$t)){
   plot3D::image2D(z = Ysd[i,,], x = vx, y = vy, zlim = range(Ysd), 
@@ -928,15 +842,11 @@ for(i in seq_along(obs$t)){
 }
 ```
 
-![](README_files/figure-html/meanst-2.png)<!-- -->
+![](inst/figure-markdown_github/meanst-2.png)
 
-       
-Random conditional simulation. La function `gpSim` returns a matrix whose two first column correspond to the position coordinate, the third columns 
-corresponds to the time scale and the fourth column to the simulated Gaussian
-process.
+Random conditional simulation. La function `gpSim` returns a matrix whose two first column correspond to the position coordinate, the third columns corresponds to the time scale and the fourth column to the simulated Gaussian process.
 
-
-```r
+``` r
 L <- cholfac(GP$cov)
 ystar <- gpSim(GP , L = L)
 
@@ -954,18 +864,18 @@ for(i in seq_along(obs$t)){
 }
 ```
 
-![](README_files/figure-html/cholst-1.png)<!-- -->
+![](inst/figure-markdown_github/cholst-1.png)
 
 Time-series at location (4,1):
 
-```r
+``` r
 par(mfrow = c(1,1))
 plot(Ysim[,vx == 4, vy == 1], type = "l", xlab = "time", ylab = "value")
 ```
 
-![](README_files/figure-html/ts_st-1.png)<!-- -->
+![](inst/figure-markdown_github/ts_st-1.png)
 
-## References
-Rasmussen C.E. and Williams C.K.I. (2006), Gaussian Processes for Machine 
-Learning, the MIT Press, ISBN 026218253X.
-www.GaussianProcess.org/gpml
+References
+----------
+
+Rasmussen C.E. and Williams C.K.I. (2006), Gaussian Processes for Machine Learning, the MIT Press, ISBN 026218253X. www.GaussianProcess.org/gpml
