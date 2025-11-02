@@ -1,7 +1,7 @@
 Package: GauProMod
 Type: Package
 Title: Gaussian Process Modelling
-Version: 0.1
+Version: 0.1.1
 Date: 2016-11-01
 Authors@R: 
   person("Emanuel", "Huber", email = "emanuel.huber@alumni.ethz.ch",
@@ -11,17 +11,20 @@ Description: A package for conditional and unconditional Gaussian
     Process Modelling (GauProMod).
 License: MIT License
 LazyData: TRUE
+Encoding: UTF-8
 Collate:
 	'RcppExports.R'
 	'GauProMod.R'
     'main.R'
+    'covariances.R'
 Depends:
 	base,
     methods,
     graphics,
 	stats
-LinkingTo: Rcpp, RcppEigen
+LinkingTo: Rcpp, RcppEigen, RcppThread
 Imports:
     Rcpp,
-    RcppEigen
-RoxygenNote: 6.0.1
+    RcppEigen,
+    RcppThread
+RoxygenNote: 7.3.2

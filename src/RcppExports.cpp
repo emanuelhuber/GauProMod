@@ -2,10 +2,46 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include <RcppEigen.h>
+#include <RcppThread.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
+// GPpred_rcpp
+Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::VectorXd>& y);
+RcppExport SEXP _GauProMod_GPpred_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstar(KstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstarstar(KstarstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(GPpred_rcpp(K, Kstar, Kstarstar, y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// GPpredmean_rcpp
+Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::VectorXd>& y, const Eigen::Map<Eigen::MatrixXd>& H, const Eigen::Map<Eigen::MatrixXd>& Hstar);
+RcppExport SEXP _GauProMod_GPpredmean_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP, SEXP HSEXP, SEXP HstarSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type K(KSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstar(KstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstarstar(KstarstarSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type H(HSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Hstar(HstarSEXP);
+    rcpp_result_gen = Rcpp::wrap(GPpredmean_rcpp(K, Kstar, Kstarstar, y, H, Hstar));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cholupdateL_rcpp
 Eigen::MatrixXd cholupdateL_rcpp(const Eigen::Map<Eigen::MatrixXd>& L, const Eigen::Map<Eigen::MatrixXd>& V12, const Eigen::Map<Eigen::MatrixXd>& V22);
 RcppExport SEXP _GauProMod_cholupdateL_rcpp(SEXP LSEXP, SEXP V12SEXP, SEXP V22SEXP) {
@@ -30,42 +66,12 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// GPpred_rcpp
-Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::MatrixXd>& y);
-RcppExport SEXP _GauProMod_GPpred_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstar(KstarSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstarstar(KstarstarSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(GPpred_rcpp(K, Kstar, Kstarstar, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// GPpredmean_rcpp
-Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::VectorXd>& y, const Eigen::Map<Eigen::MatrixXd>& H, const Eigen::Map<Eigen::MatrixXd>& Hstar);
-RcppExport SEXP _GauProMod_GPpredmean_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP, SEXP HSEXP, SEXP HstarSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type K(KSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstar(KstarSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstarstar(KstarstarSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type H(HSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Hstar(HstarSEXP);
-    rcpp_result_gen = Rcpp::wrap(GPpredmean_rcpp(K, Kstar, Kstarstar, y, H, Hstar));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_GauProMod_cholupdateL_rcpp", (DL_FUNC) &_GauProMod_cholupdateL_rcpp, 3},
-    {"_GauProMod_cholfac_rcpp", (DL_FUNC) &_GauProMod_cholfac_rcpp, 1},
     {"_GauProMod_GPpred_rcpp", (DL_FUNC) &_GauProMod_GPpred_rcpp, 4},
     {"_GauProMod_GPpredmean_rcpp", (DL_FUNC) &_GauProMod_GPpredmean_rcpp, 6},
+    {"_GauProMod_cholupdateL_rcpp", (DL_FUNC) &_GauProMod_cholupdateL_rcpp, 3},
+    {"_GauProMod_cholfac_rcpp", (DL_FUNC) &_GauProMod_cholfac_rcpp, 1},
     {NULL, NULL, 0}
 };
 

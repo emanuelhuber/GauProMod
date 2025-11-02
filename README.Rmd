@@ -3,11 +3,13 @@ title: GauProMod
 author: "Emanuel Huber"
 date: "2018-05-31"
 output: github_document
+
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.path="inst/")
 ```
 
 R functions for Gaussian process (GP) modelling. The core functions are coded 
