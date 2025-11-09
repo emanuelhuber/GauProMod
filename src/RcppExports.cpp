@@ -13,8 +13,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // GPpred_rcpp
-Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::VectorXd>& y);
-RcppExport SEXP _GauProMod_GPpred_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP) {
+Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::VectorXd>& y, bool only_mean);
+RcppExport SEXP _GauProMod_GPpred_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP, SEXP only_meanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,13 +22,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstar(KstarSEXP);
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Kstarstar(KstarstarSEXP);
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(GPpred_rcpp(K, Kstar, Kstarstar, y));
+    Rcpp::traits::input_parameter< bool >::type only_mean(only_meanSEXP);
+    rcpp_result_gen = Rcpp::wrap(GPpred_rcpp(K, Kstar, Kstarstar, y, only_mean));
     return rcpp_result_gen;
 END_RCPP
 }
 // GPpredmean_rcpp
-Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::VectorXd>& y, const Eigen::Map<Eigen::MatrixXd>& H, const Eigen::Map<Eigen::MatrixXd>& Hstar);
-RcppExport SEXP _GauProMod_GPpredmean_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP, SEXP HSEXP, SEXP HstarSEXP) {
+Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K, const Eigen::Map<Eigen::MatrixXd>& Kstar, const Eigen::Map<Eigen::MatrixXd>& Kstarstar, const Eigen::Map<Eigen::VectorXd>& y, const Eigen::Map<Eigen::MatrixXd>& H, const Eigen::Map<Eigen::MatrixXd>& Hstar, bool only_mean);
+RcppExport SEXP _GauProMod_GPpredmean_rcpp(SEXP KSEXP, SEXP KstarSEXP, SEXP KstarstarSEXP, SEXP ySEXP, SEXP HSEXP, SEXP HstarSEXP, SEXP only_meanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -38,7 +39,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type y(ySEXP);
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type H(HSEXP);
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Hstar(HstarSEXP);
-    rcpp_result_gen = Rcpp::wrap(GPpredmean_rcpp(K, Kstar, Kstarstar, y, H, Hstar));
+    Rcpp::traits::input_parameter< bool >::type only_mean(only_meanSEXP);
+    rcpp_result_gen = Rcpp::wrap(GPpredmean_rcpp(K, Kstar, Kstarstar, y, H, Hstar, only_mean));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -66,12 +68,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// crossDist_rcpp
+Eigen::MatrixXd crossDist_rcpp(const Eigen::Map<Eigen::MatrixXd>& X, const Eigen::Map<Eigen::MatrixXd>& Y, const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& M);
+RcppExport SEXP _GauProMod_crossDist_rcpp(SEXP XSEXP, SEXP YSEXP, SEXP MSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& >::type M(MSEXP);
+    rcpp_result_gen = Rcpp::wrap(crossDist_rcpp(X, Y, M));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_GauProMod_GPpred_rcpp", (DL_FUNC) &_GauProMod_GPpred_rcpp, 4},
-    {"_GauProMod_GPpredmean_rcpp", (DL_FUNC) &_GauProMod_GPpredmean_rcpp, 6},
+    {"_GauProMod_GPpred_rcpp", (DL_FUNC) &_GauProMod_GPpred_rcpp, 5},
+    {"_GauProMod_GPpredmean_rcpp", (DL_FUNC) &_GauProMod_GPpredmean_rcpp, 7},
     {"_GauProMod_cholupdateL_rcpp", (DL_FUNC) &_GauProMod_cholupdateL_rcpp, 3},
     {"_GauProMod_cholfac_rcpp", (DL_FUNC) &_GauProMod_cholfac_rcpp, 1},
+    {"_GauProMod_crossDist_rcpp", (DL_FUNC) &_GauProMod_crossDist_rcpp, 3},
     {NULL, NULL, 0}
 };
 

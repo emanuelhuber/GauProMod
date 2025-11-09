@@ -37,7 +37,11 @@ op <- 0
 
 sigma <- 0.2
 
-
+covModel <- list(kernel="matern",
+                 l = 5,     # correlation length
+                 v = 1,     # smoothness
+                 h = 2.45   # std. deviation
+)
 
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
              sigma = sigma, op = op)
@@ -73,6 +77,17 @@ lines(ystar, col = "blue")
 points(cbind(obs$x, obs$y), col = "black", pch = 20)
 legend("topleft", legend = c("obs", "GP sim"), lty = c(NA, 1),
        pch = c(20, NA), col=c("black", "blue"), bty="n")
+
+# only mean
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+             sigma = sigma, op = op, onlyMean = TRUE)
+names(GP)
+GP$mean
+
+plot(cbind(obs$x, obs$y), type="p", xlab="x", ylab="y", 
+     xlim = range(c(obs$x, targ$x)), ylim = range(c(xp, xm, obs$y)),
+     pch = 20, col = "black", main = GP$logLik) 
+lines(GP$xstar, GP$mean,col="red")  # mean
 
 
 # 1D GP with derivative
@@ -542,7 +557,7 @@ obs <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31,
 vx <- seq(0, 10, by = 0.1)
 vy <- seq(0, 10, by = 0.1)
 targ <- list(x = vecGrid(vx, vy))
-
+dim(targ[[1]])
 
 # linear kernel
 covModel <- list(kernel="linear",

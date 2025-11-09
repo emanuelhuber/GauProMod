@@ -12,7 +12,8 @@ Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K,
                            const Eigen::Map<Eigen::MatrixXd>& Kstarstar,
                            const Eigen::Map<Eigen::VectorXd>& y, // Correctly mapped as VectorXd
                            const Eigen::Map<Eigen::MatrixXd>& H,    // k x m
-                           const Eigen::Map<Eigen::MatrixXd>& Hstar) // k x n
+                           const Eigen::Map<Eigen::MatrixXd>& Hstar, // k x n
+                           bool only_mean = false)
 {
   
   // Dimensions
@@ -71,12 +72,16 @@ Rcpp::List GPpredmean_rcpp(const Eigen::Map<Eigen::MatrixXd>& K,
   // This is Hstar - H K^-1 Kstar
   Eigen::MatrixXd R = Hstar - d.adjoint() * b;
   
+  // Mean M = b^T * a + R^T * B. (M is n x 1)
+  Eigen::VectorXd M = b.adjoint() * a + R.adjoint() * B;
+  
+  if (only_mean) {
+    return Rcpp::List::create(Rcpp::Named("mean") = M);
+  }
+  
   // e = L2^-1 R. (e is k x n)
   // Solves L2 * e = R. Parallelized.
   Eigen::MatrixXd e = L2.triangularView<Eigen::Lower>().solve(R);
-  
-  // Mean M = b^T * a + R^T * B. (M is n x 1)
-  Eigen::VectorXd M = b.adjoint() * a + R.adjoint() * B;
   
   // Covariance C = Kstarstar - b^T * b + e^T * e. (C is n x n)
   

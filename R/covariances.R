@@ -175,30 +175,44 @@ sign2 <- function(x){
 #' has for dimension: nrow(X) x ncol(Y).
 #' If M is the identity matrix (by default), the distance is isotropic, if not
 #' the distance is anisotropic.
-#' @param X a matrix
-#' @param Y a matrix with same number of columns as X
+#' @param X a matrix or vector
+#' @param Y a matrix or vector with same number of columns as X
 #' @param M a positive semidefinite matrix (nrow(M) = ncol(M) = ncol(X))
-#' @name covm
+#' @name crossDist
 #' @export
 crossDist <- function(X, Y, M = NULL){
-  if(!identical(ncol(X), ncol(Y))){
-    stop("X and Y must have identical dimensions!\n")
+  # if(!identical(ncol(X), ncol(Y))){
+  #   stop("X and Y must have identical dimensions!\n")
+  # }
+  # # case 1D
+  # if(is.null(dim(X))){
+  #   # return( outer(X, Y, "-") )
+  #   return( outer(X, Y, function(X, Y){ sqrt((X - Y)^2)}))
+  # }else{
+  #   # case 2D
+  #   if(!is.null(M)){
+  #     L <- cholfac(M)
+  #     X <- X %*% L
+  #     Y <- Y %*% L
+  #   }
+  #   Xn <- rowSums(X^2)
+  #   Yn <- rowSums(Y^2)
+  #   D2 <- outer(Xn, Yn, "+") - 2 * tcrossprod(X, Y)
+  #   D2[D2 < 0] <- 0  # numerical stability
+  #   sqrt(D2)
+  # }
+  # Ensure X and Y are matrices for RcppEigen
+  X_mat <- as.matrix(X)
+  Y_mat <- as.matrix(Y)
+  
+  # Original check
+  if(!identical(ncol(X_mat), ncol(Y_mat))){
+    stop("X and Y must have identical number of columns!")
   }
-  if(is.null(dim(X))){
-    # return( outer(X, Y, "-") )
-    return( outer(X, Y, function(X, Y){ sqrt((X - Y)^2)}))
-  }else{
-    if(!is.null(M)){
-      L <- cholfac(M)
-      X <- X %*% L
-      Y <- Y %*% L
-    }
-    Xn <- rowSums(X^2)
-    Yn <- rowSums(Y^2)
-    D2 <- outer(Xn, Yn, "+") - 2 * tcrossprod(X, Y)
-    D2[D2 < 0] <- 0  # numerical stability
-    sqrt(D2)
-  }
+  
+  # Call the Rcpp version
+  # The Rcpp function handles both 1D and 2D cases efficiently
+  return(crossDist_rcpp(X_mat, Y_mat, M))
 }
 # crossDist <- function(X, Y, M = NULL){
 #   if(!identical(ncol(X), ncol(Y))){

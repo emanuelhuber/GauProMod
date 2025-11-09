@@ -31,7 +31,7 @@ NULL
 #' @name gpCond
 #' @export
 gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
-                    sigmat = 0){
+                    sigmat = 0, onlyMean = FALSE){
 
   Kxx       <- covm( obs$x,  obs$x, covModels[[1]])
   Kstar     <- covm( obs$x, targ$x, covModels[[1]])
@@ -104,10 +104,10 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
       }
     }
     Hstar <- Hmat(xstar,op)
-    A2 <- GPpredmean_rcpp(Kxx, Kstar, Kstarstar, y, H, Hstar)
+    A2 <- GPpredmean_rcpp(Kxx, Kstar, Kstarstar, y, H, Hstar, only_mean = onlyMean)
     # A2[["logLik"]] <- A2$logLik
   }else{
-    A2 <- GPpred_rcpp(Kxx, Kstar, Kstarstar, y)
+    A2 <- GPpred_rcpp(Kxx, Kstar, Kstarstar, y, only_mean = onlyMean)
     # logLik <- A2$logLik# 1 - sum(log(A2$logLik2)) - nrow(Kxx)/2 * log(2*pi)
     # A2[["logLik"]] <- A2$logLik
   }

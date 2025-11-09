@@ -11,7 +11,8 @@
 Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K,
                        const Eigen::Map<Eigen::MatrixXd>& Kstar,
                        const Eigen::Map<Eigen::MatrixXd>& Kstarstar,
-                       const Eigen::Map<Eigen::VectorXd>& y) {
+                       const Eigen::Map<Eigen::VectorXd>& y,
+                       bool only_mean = false) {
   
   // IMPORTANT: Temporarily disable Eigen's multi-threading if running on a single core is required by Rcpp/R
   // However, for pure performance, we let Eigen manage the threads.
@@ -46,6 +47,10 @@ Rcpp::List GPpred_rcpp(const Eigen::Map<Eigen::MatrixXd>& K,
   // Mean M = beta_t * a 
   // Matrix-vector multiplication, automatically parallelized.
   Eigen::VectorXd M = beta_t * a;
+  
+  if (only_mean) {
+    return Rcpp::List::create(Rcpp::Named("mean") = M);
+  }
   
   // VTV = V^T * V 
   // Matrix-Matrix multiplication, the most parallelized step in prediction.
