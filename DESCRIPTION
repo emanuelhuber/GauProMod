@@ -1,8 +1,8 @@
 Package: GauProMod
 Type: Package
 Title: Gaussian Process Modelling
-Version: 0.1.1
-Date: 2016-11-01
+Version: 0.1.2
+Date: 2025-11-15
 Authors@R: 
   person("Emanuel", "Huber", email = "emanuel.huber@alumni.ethz.ch",
   role = c("aut", "cre"))
@@ -22,7 +22,7 @@ Depends:
     methods,
     graphics,
 	stats
-LinkingTo: Rcpp, RcppEigen, RcppThread
+LinkingTo: Rcpp, RcppEigen, RcppThread, RcppBessel
 Imports:
     Rcpp,
     RcppEigen,

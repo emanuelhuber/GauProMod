@@ -6,6 +6,25 @@ devtools::install_local("/media/huber/Elements/UNIBAS/software/codeR/package_Gau
 
 
 
+# TO TEST
+# - Symmetric covariance matrix: compute only the half
+# - SPARSE MATRICES
+#    - CUT-OFF -> Better use a distance? or as additional option
+# FIX PROBLEM GP 1D derivative.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 library(GauProMod)
 library(plot3D)
 library(RColorBrewer)
@@ -20,7 +39,7 @@ obs <- list(x=c(-4, -3, -1, 0, 4),
 targ <- list("x"=seq(-10,10,len=200))
 
 covModel <- list(kernel="gaussian",
-                 l = 0.7,   # correlation length
+                 l = 4.7,   # correlation length
                  h = 1.)  # std. deviation
 
 # squared exponential kernel (Gaussian)
@@ -39,9 +58,13 @@ sigma <- 0.2
 
 covModel <- list(kernel="matern",
                  l = 5,     # correlation length
-                 v = 1,     # smoothness
+                 v = 1.5,     # smoothness
                  h = 2.45   # std. deviation
 )
+
+# FIXME
+# Error in covm(obs$x, obs$x, covModels[[1]]) : 
+#   matern kernel supports v = 1.5 (3/2) or v = 2.5 (5/2) in this implementation.
 
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
              sigma = sigma, op = op)
@@ -102,6 +125,10 @@ covModel <- list(kernel = "matern",
                  v = 3.5,
                  h = 0.55)
 
+covModel <- list(kernel="gaussian",
+                 l = 0.27,   # correlation length
+                 h = 0.55)  # std. deviation
+
 bc <- list(x = c(-4.5, -2, 0,  3, 4.5),
            y = c(   0,  1, 0, -1,   0),
            sigma = 0)
@@ -112,6 +139,9 @@ GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel),
              sigma = sigma, op = 0)
 GP2 <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
               sigma = sigma, op = 0, bc = bc)
+# Error: Cholesky decomposition failed. Matrix K is not positive definite.
+# ---> PROBLEM WITH MATERN!
+
 
 #--- plot mean +/- sd
 xp <-(GP$mean + sqrt(diag(GP$cov)))  # mean + sd
@@ -150,7 +180,7 @@ covModel <- list(kernel = "matern",
 
 # squared exponential kernel (Gaussian)
 covModel <- list(kernel="gaussian",
-                 l = 0.25,   # correlation length
+                 l = 2.25,   # correlation length
                  h = 0.5)  # std. deviation
 
 # - `x` is the locations where we set the derivative of the Gaussian field, 
@@ -226,13 +256,17 @@ targ <- list(x = cbind(c(2.17, 7.92, 8.98, 7.77, 2.79, 5.36, 4.27, 3.07, 6.31,
 )
 
 
-  # Matern kernel
-  covModel <- list(kernel="matern",
-                   l = 5,     # correlation length
-                   v = 1,     # smoothness
-                   h = 2.45   # std. deviation
-  )
+# Matern kernel
+covModel <- list(kernel="matern",
+                 l = 5,     # correlation length
+                 v = 1,     # smoothness
+                 h = 2.45   # std. deviation
+)
 
+# squared exponential kernel (Gaussian)
+covModel <- list(kernel="gaussian",
+                 l = 5,   # correlation length
+                 h = 2.5)  # std. deviation
 # 2D linear mean function
 op <- 2
 
@@ -435,6 +469,7 @@ op <- 2
 GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModelAni2), 
              sigma = sigma, op = op)
 names(GP)
+
 # GP$mean   = mean value at location xstar
 # GP$cov    = covariance matrix of the conditioned GP
 # GP$logLik = log-likelihood of the conditioned GP
@@ -631,4 +666,45 @@ plot3D::contour2D(x = vx, y = vy, YSD, asp=1)
 points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 title(main = "standard deviation")
+
+
+
+#--- only mean
+
+starttime <- Sys.time()
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+             sigma = sigma, op = op, onlyMean = TRUE)
+endtime <- Sys.time()
+
+endtime - starttime
+# Time difference of 19.06291 secs
+
+GP$logLik
+# -712.986  <- version gemini
+# -434.9469 <- version gemini modified by me (but not sure if it is correct...)
+
+
+
+names(GP)
+# GP$mean   = mean value at location xstar
+# GP$cov    = covariance matrix of the conditioned GP
+# GP$logLik = log-likelihood of the conditioned GP
+#
+
+
+# mean
+Ymean <- matrix(GP$mean, nrow = length(vx), ncol = length(vy), byrow = TRUE)
+# standard deviation
+YSD <- matrix(sqrt(diag(GP$cov)), nrow = length(vx), ncol = length(vy), 
+              byrow = TRUE)
+
+par(mfrow = c(1,2))
+plot3D::image2D(x = vx, y = vy, z = Ymean, asp=1)
+points(obs$x, col="white",pch=3)
+title(main = "mean")
+
+plot3D::contour2D(x = vx, y = vy, Ymean, asp=1)
+points(obs$x, col="black",pch=3)
+rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
+title(main = "mean")
 

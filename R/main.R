@@ -33,9 +33,9 @@ NULL
 gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
                     sigmat = 0, onlyMean = FALSE){
 
-  Kxx       <- covm( obs$x,  obs$x, covModels[[1]])
+  Kxx       <- covm( obs$x,  obs$x, covModels[[1]], use_symmetry = TRUE)
   Kstar     <- covm( obs$x, targ$x, covModels[[1]])
-  Kstarstar <- covm(targ$x, targ$x, covModels[[1]])
+  Kstarstar <- covm(targ$x, targ$x, covModels[[1]], use_symmetry = TRUE)
   if(length(sigma) == 1){
     sigma     <- rep(sigma, ncol(Kxx))
   }else if(length(sigma) != ncol(Kxx)){
@@ -462,7 +462,7 @@ vecGrid <- function(x,y){
 #' @name invm
 #' @export
 invm <- function(x){
-	cholx <- try(chol(x),silent=TRUE)
+	cholx <- try(cholfac(x),silent=TRUE)
 	if(class(cholx) == "try-error"){
 	  cat("Error with the Cholesky decomposition\n")
 	  return(rcppeigen_invert_matrix(x))

@@ -4,24 +4,26 @@
 \alias{kernels}
 \alias{kGaussian}
 \alias{kLinear}
+\alias{kPolynomial}
 \alias{kMatern}
-\title{#' @export
-se <- function(x, y, covModel, d = 0, w = 1){
-  warning("Deprecated function! Use 'kGaussian' instead!\n")
-  kGaussian(r, covModel, d, w)
-}
-#' @export
-kSe <- function(r, covModel, d = 0, w = 1){
-  warning("Deprecated function! Use 'kGaussian' instead!\n")
-  kGaussian(r = r, para = covModel, d = d, w = w)
-}
-Kernels (covariance functions) for Gaussian process}
+\alias{kTriangular}
+\alias{kSpherical}
+\alias{kCauchy}
+\title{Kernels (covariance functions) for Gaussian process}
 \usage{
-kGaussian(r, para, d = 0, w = 1)
+kGaussian(r, para, d = 0, w = 1, use_symmetry = FALSE)
 
-kLinear(x, y, para, d = 0, w = 1)
+kLinear(x, y, para, d = 0, w = 1, use_symmetry = FALSE)
 
-kMatern(r, para, d = 0, w = 1)
+kPolynomial(x, y, para, d = 0, w = 1, use_symmetry = FALSE)
+
+kMatern(r, para, d = 0, w = 1, use_symmetry = FALSE)
+
+kTriangular(r, para, d = 0, w = 1, use_symmetry = FALSE)
+
+kSpherical(r, para, d = 0, w = 1, use_symmetry = FALSE)
+
+kCauchy(r, para, d = 0, w = 1, use_symmetry = FALSE)
 }
 \description{
 Squared Exponential Covariance Function (or radial basis or Gaussian)

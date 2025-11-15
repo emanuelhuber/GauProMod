@@ -4,8 +4,111 @@
 \alias{covm}
 \title{Covariance matrix}
 \usage{
-covm(x, y, covModel, d = 0, dx = 1, ...)
+covm(x, y, covModel, d = 0, dx = 1, use_symmetry = FALSE, ...)
+}
+\arguments{
+\item{x}{Numeric vector or matrix of locations.
+- If a vector, it is treated as 1D positions.  
+- If a matrix, it must have one location per row and the same number of columns as `y`.}
+
+\item{y}{Numeric vector or matrix of locations.
+If omitted, defaults to `y = x`.}
+
+\item{covModel}{A named list describing the covariance model.
+  **Required fields:**
+  - `kernel`: character, one of `"gaussian"`, `"exponential"`, `"matern_3_2"`,
+    `"matern_5_2"`, `"power_exp"`, `"linear"`.  
+    (A legacy `covModel$type` is also accepted and will be renamed.)
+  - `l`: numeric, the length scale (positive).  
+  - `h`: numeric, the marginal standard deviation (≥ 0).  
+
+  **Optional fields:**
+  - `v`: smoothness exponent (for `"power_exp"` or `"matern"`).  
+  - `b`: bias for the `"linear"` kernel.  
+  - `scale`: numeric vector of length `ncol(x)` for per-dimension scaling.  
+  - `rot`: rotation angle in radians (2D only).}
+
+\item{d}{Integer derivative order:
+- `0`: covariance (default)  
+- `1`: first radial derivative ∂K/∂r  
+- `2`: second radial derivative ∂²K/∂r²  
+
+When `d > 0`, the function multiplies the radial derivative by a
+weight matrix `w` so that the result corresponds to  
+∂K/∂y = (dK/dr) × (dr/dy).}
+
+\item{dx}{For directional derivatives (2D only), either a length-2 numeric
+unit vector or an `nrow(x) × 2` matrix of unit direction vectors.  
+Ignored when `d = 0`.  
+For 1D data, `dx` is not used — the wrapper computes the correct sign-based
+weight automatically.}
+
+\item{...}{Additional arguments passed to kernel functions.}
+
+\item{sparse}{Logical; if `TRUE`, return a sparse matrix (`Matrix::dgCMatrix`)
+using a distance cutoff. Default is `FALSE`.}
+
+\item{cutoff}{Numeric; distance threshold used when `sparse = TRUE`.
+Entries corresponding to distances greater than `cutoff` are set to zero.  
+When `cutoff <= 0`, sparsity is not applied.}
+}
+\value{
+- A dense numeric matrix (`matrix`) when `sparse = FALSE`.  
+- A sparse matrix (`Matrix::dgCMatrix`) when `sparse = TRUE`.  
+
+If `d > 0`, the entries represent directional derivatives of the covariance.
 }
 \description{
-Create a covariance matrix according to the kernel parametrisation
+Compute a covariance (kernel) matrix — or its derivatives — between two sets of
+locations using a specified kernel model.  
+The wrapper handles **anisotropy**, **rotation**, and **derivative weights**,
+and calls a C++ backend for efficient evaluation.
+}
+\details{
+The function constructs an anisotropy matrix `M` (from `covModel$scale` and `covModel$rot`)
+and computes pairwise distances:
+
+- For non-linear stationary kernels (e.g., `"gaussian"`, `"exponential"`, `"matern_3_2"`,
+  `"matern_5_2"`, `"power_exp"`), it computes  
+  *r* = ‖*x₁* − *y₁*‖ (possibly anisotropic) and passes the distance matrix to C++.
+
+- For the `"linear"` kernel, the dot-product matrix `x %*% t(y)` is used instead of distances.
+
+Derivative orders `d = 1` or `d = 2` compute radial derivatives multiplied by
+geometric weights `w` so that the output corresponds to directional partial
+derivatives with respect to `y`.
+
+Parameter ordering in the backend:  
+`params = c(l, h, ...)`, with additional entries if needed:
+
+- For `"power_exp"`: append `v`.  
+- For `"linear"`: append `b` (default 0 if missing).
+}
+\examples{
+# --- 1D Gaussian covariance
+x <- seq(0, 5, length.out = 6)
+covModel <- list(kernel = "gaussian", l = 1, h = 2)
+K <- covm(x, x, covModel)
+dim(K)
+
+# --- 2D Matern (3/2)
+pts <- expand.grid(seq(0, 1, by = 0.5), seq(0, 1, by = 0.5))
+covModel2 <- list(kernel = "matern_3_2", l = 0.5, h = 1)
+K2 <- covm(as.matrix(pts), as.matrix(pts), covModel2)
+
+# --- Linear kernel (dot product)
+covLin <- list(kernel = "linear", l = 1, h = 1.5, b = 0.1)
+Klin <- covm(pts, pts, covLin)
+
+# --- First derivative in 1D
+Kd1 <- covm(x, x, covModel, d = 1)
+
+# --- Sparse computation with cutoff
+Ksparse <- covm(x, x, covModel2, sparse = TRUE, cutoff = 0.3)
+
+}
+\seealso{
+- [crossDist()] for distance computation  
+- [covfx()] for covariance as a function of distance  
+- The underlying C++ wrapper `.covm_rcpp_wrapper`
 }
