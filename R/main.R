@@ -48,7 +48,7 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
     # if length(dim (obs$x)) == 1 or   length(dim (obs$y)) == 1
     # dx = 1 (bc$v is Null and will not be used)
     Kdxx  <- covm(obs$x, bc$x, covModels[[1]] , d = 1, dx = bc$v)
-    Kdxdx <- covm( bc$x, bc$x, covModels[[1]] , d = 2, dx = bc$v)
+    Kdxdx <- covm( bc$x, bc$x, covModels[[1]] , d = 2, dx = bc$v, use_symmetry = TRUE)
     sigma <- c(sigma, rep(bc$sigma, ncol(Kdxx)))
     # Kxx is symmetric, but the derivative blocks are NOT symmetric (K_dxdx != K_dxdx^T)
     # K_obs,dx = Kdxx (needs w = sign(x-x'))
@@ -71,7 +71,7 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
     x <- obs$x[rep(seq_len(nxy), each=nt),]
 #     y <- obs$y
     AA <- cbind(xstar,targ$t)
-    Ktt <- covm(obs$t, obs$t, covModels[[2]])
+    Ktt <- covm(obs$t, obs$t, covModels[[2]], use_symmetry = TRUE)
     Knoise <- diag(sigma^2)
     Ktnoise <- diag(rep(sigmat^2, length(obs$t)))
     Kxx <-  (Kxx + Knoise) %x% (Ktt + Ktnoise)
@@ -79,7 +79,7 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
     #                   Kxx[1,1]*Knoise[2,1] Kxx[1,1]*Knoise[2,2] ...
     #                   ...
     Kstarstar <- Kstarstar %x%
-                 covm(targ$t, targ$t, covModels[[2]])
+                 covm(targ$t, targ$t, covModels[[2]], use_symmetry = TRUE)
     Kstar <- Kstar %x% covm(obs$t, targ$t, covModels[[2]])
     if(!is.null(bc)){
       y <- c(obs$y, rep(bc$y, nt))
@@ -110,46 +110,6 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
     A2 <- GPpred_rcpp(Kxx, Kstar, Kstarstar, y, only_mean = onlyMean)
     # logLik <- A2$logLik# 1 - sum(log(A2$logLik2)) - nrow(Kxx)/2 * log(2*pi)
     # A2[["logLik"]] <- A2$logLik
-  }
-  A2[["xstar"]] <- AA
-  return(A2)
-}
-
-
-gpCondOld <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL){
-
-  if(length(covModels) == 2){
-    if(is.null(targ$t)){
-	    targ$t <- obs$t
-	  }
-	  nt <- length(obs$t)
-	  xstar <- targ$x[rep(seq_len(nrow(targ$x)),each=nt),]
-    nxy <- nrow(obs$x)
-	  x <- obs$x[rep(seq_len(nxy), each=nt),]
-	  y <- obs$y
-	  AA <- cbind(xstar,targ$t)
-	  Kxx <-  covm(obs$x, obs$x, covModels[[1]]) %x%
-            covm(obs$t, obs$t, covModels[[2]]) +
-            diag(sigma^2, length(obs$y))
-	  Kstarstar <- covm(targ$x, targ$x, covModels[[1]]) %x%
-                 covm(targ$t, targ$t, covModels[[2]])
-	  Kstar <- covm(obs$x, targ$x, covModels[[1]]) %x%
-             covm(obs$t, targ$t, covModels[[2]])
-  }else{
-	  Kxx <-  covm(obs$x, obs$x,covModels[[1]])  +  diag(sigma^2, length(obs$y))
-	  Kstarstar <- covm(targ$x, targ$x,covModels[[1]])
-	  Kstar <- covm(obs$x, targ$x,covModels[[1]])
-	  x <- obs$x
-	  y <- obs$y
-	  xstar <- targ$x
-	  AA <- targ$x
-  }
-  if(op > 0){
-	  H <- Hmat(x,op)
-	  Hstar <- Hmat(xstar,op)
-	  A2 <- GPpredmean_rcpp(Kxx,Kstar,Kstarstar,y, H, Hstar)
-  }else{
-	  A2 <- GPpred_rcpp(Kxx, Kstar, Kstarstar, y)
   }
   A2[["xstar"]] <- AA
   return(A2)

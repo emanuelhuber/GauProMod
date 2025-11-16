@@ -178,10 +178,10 @@ covModel <- list(kernel = "matern",
                  v = 3.5,
                  h = 0.55)
 
-# squared exponential kernel (Gaussian)
-covModel <- list(kernel="gaussian",
-                 l = 2.25,   # correlation length
-                 h = 0.5)  # std. deviation
+# # squared exponential kernel (Gaussian)
+# covModel <- list(kernel="gaussian",
+#                  l = 2.25,   # correlation length
+#                  h = 0.5)  # std. deviation
 
 # - `x` is the locations where we set the derivative of the Gaussian field, 
 # - `v` the gradient derivative, i.e., a unit vector normal to the no-flow boundary (or tangent to a constant-head boundary)
@@ -708,3 +708,48 @@ points(obs$x, col="black",pch=3)
 rect(vx[1], vy[1], vx[length(vx)], vy[length(vy)])
 title(main = "mean")
 
+
+
+# Install and load the package if you haven't already
+# install.packages("profvis")
+library(profvis)
+
+profvis({
+  # Put your code block inside profvis()
+  GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+               sigma = sigma, op = op, onlyMean = TRUE)
+})
+
+# 1. Load the packages
+library(microbenchmark)
+# You often need ggplot2 for the autoplot function
+# library(ggplot2) 
+
+# 2. Run the benchmarks for comparison
+# Note: You need at least two expressions to compare, 
+# or use different settings (e.g., small vs. large data)
+results <- microbenchmark(
+  GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+               sigma = sigma, op = op, onlyMean = TRUE),
+  times = 50 
+)
+
+# 3. Visualize the results
+# This automatically generates a box/violin plot using ggplot2
+autoplot(results)
+# OR for a simple boxplot (if ggplot2 is not loaded)
+# boxplot(results)
+
+
+library(microbenchmark)
+X <- matrix(rnorm(1000*10), 1000, 1000)
+W <- GauProMod:::make_W(X, 1)
+
+
+microbenchmark(
+  gaussian = GauProMod:::kernel_dispatch_auto_rcpp(X, X, l=1, h=1, v=0, degree=0, c=0, d = 0, W, "gaussian", FALSE),
+  gaussiansym = GauProMod:::kernel_dispatch_auto_rcpp(X, X, l=1, h=1, v=0, degree=0, c=0, d = 0, W, "gaussian", TRUE),
+  matern = GauProMod:::kernel_dispatch_auto_rcpp(X, X, l=1, h=1, v=1.5, degree=0, c=0, d= 0,W, "matern", FALSE),
+  maternsym = GauProMod:::kernel_dispatch_auto_rcpp(X, X, l=1, h=1, v=1.5, degree=0, c=0, d= 0,W, "matern", TRUE),
+  times = 10
+)

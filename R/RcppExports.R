@@ -20,12 +20,14 @@ cholfac_rcpp <- function(A) {
 #' Cross-distance between two matrices (RcppEigen version)
 #'
 #' Compute the Mahalanobis or Euclidean distance between every row of two matrices.
+#' Dispatches to optimized symmetric/unsymmetric core functions.
 #' @param X a matrix (or vector, handled as a matrix)
 #' @param Y a matrix (or vector) with the same number of columns as X
 #' @param M a positive semi-definite matrix for Mahalanobis distance, or NULL for Euclidean.
+#' @param use_symmetry If TRUE, assumes X=Y, skips redundant calculations, and forces the diagonal to zero.
 #' @return A distance matrix of dimension nrow(X) x nrow(Y).
-crossDist_rcpp <- function(X, Y, M = NULL) {
-    .Call('_GauProMod_crossDist_rcpp', PACKAGE = 'GauProMod', X, Y, M)
+crossDist_rcpp <- function(X, Y, M = NULL, use_symmetry = FALSE) {
+    .Call('_GauProMod_crossDist_rcpp', PACKAGE = 'GauProMod', X, Y, M, use_symmetry)
 }
 
 #' Fully Vectorized Sparse Cross-Distance (No Loops)
@@ -35,18 +37,12 @@ crossDist_rcpp <- function(X, Y, M = NULL) {
 #'
 #' @param X Numeric matrix (n x p)
 #' @param Y Numeric matrix (m x p)
-#' @param rmax Maximum distance to store (default Inf)
+#' @param rmax Maximum distance to store. Default is \code{Inf}.
 #' @param M Optional positive semi-definite matrix for Mahalanobis distance
 #' @return Sparse distance matrix (n x m) with distances <= rmax
-crossDist_sparse_noloop <- function(X, Y, rmax, M = NULL) {
-    .Call('_GauProMod_crossDist_sparse_noloop', PACKAGE = 'GauProMod', X, Y, rmax, M)
+crossDist_sparse <- function(X, Y, rmax, M = NULL) {
+    .Call('_GauProMod_crossDist_sparse', PACKAGE = 'GauProMod', X, Y, rmax, M)
 }
-
-#' Polynomial (Gram) Kernel with Derivatives
-NULL
-
-#' Linear (Gram) Kernel with Derivatives
-NULL
 
 #' Kernel Dispatcher: Gaussian, Matern, Cauchy, Linear, Polynomial, Spherical
 #'
@@ -66,117 +62,47 @@ NULL
 #' @return Kernel matrix (n x m) or derivatives as matrix.
 NULL
 
-#' Gaussian Kernel Matrix
+#' Kernel Dispatcher (Dense + Sparse Support)
 #'
-#' Computes the Gaussian (squared exponential) kernel matrix for a given distance matrix.
+#' Computes kernel matrices for a variety of kernels, supporting both dense feature matrices
+#' and sparse distance matrices (dgCMatrix). Automatically dispatches to optimized implementations
+#' depending on the kernel type and input format.
 #'
-#' @param R Distance matrix (n x m). Must be non-negative.
-#' @param l Length scale parameter (>0).
-#' @param h Marginal standard deviation (scale factor).
-#' @param d Derivative order: 0 = kernel, 1 = first derivative, 2 = second derivative.
-#' @param W Weight matrix (n x m) to scale derivatives elementwise.
-#' @param use_symmetry Logical; if TRUE, enforces symmetry (only valid if R is square).
-#' @return Kernel matrix (n x m) or its derivative.
+#' Supported kernels:
+#' * Distance-based kernels (sparse/dense): `"gaussian"`, `"matern"`, `"cauchy"`, `"triangular"`, `"spherical"`
+#' * Feature/Gram kernels (dense only): `"linear"`, `"polynomial"`
+#'
+#' Derivatives are supported via the `d` argument:
+#' * `d = 0`: Kernel values
+#' * `d = 1`: First derivative
+#' * `d = 2`: Second derivative
+#'
+#' Symmetry enforcement (`use_symmetry = TRUE`) works for square distance matrices only.
+#'
+#' @param X Dense numeric matrix or sparse dgCMatrix (distance matrix for distance kernels)
+#' @param Y Dense numeric matrix or sparse dgCMatrix (same dimensions as X)
+#' @param l Length scale (>0) for distance kernels
+#' @param h Scale factor / marginal standard deviation
+#' @param v Smoothness parameter (`nu`) for Matern or shape for Cauchy
+#' @param degree Polynomial degree (integer >=1) for polynomial kernel
+#' @param c Bias term for linear/polynomial kernels
+#' @param d Derivative order: 0, 1, or 2
+#' @param W Dense or sparse weight matrix, same dimensions as X/Y, scales derivatives elementwise
+#' @param kernel Kernel type (string): `"gaussian"`, `"matern"`, `"cauchy"`, `"triangular"`, `"spherical"`, `"linear"`, `"polynomial"`
+#' @param use_symmetry Logical; if TRUE, enforces symmetry (only valid for square X/Y distance matrices)
+#' @return Kernel matrix (dense `MatrixXd` if inputs are dense, sparse `dgCMatrix` if inputs are sparse)
 #' @examples
-#' R <- as.matrix(dist(matrix(rnorm(10*2), 10, 2)))
-#' W <- matrix(1, nrow(R), ncol(R))
-#' kGaussian_rcpp(R, l=1, h=1, d=0, W, use_symmetry=TRUE)
-kGaussian_rcpp <- function(R, l, h, d, W, use_symmetry) {
-    .Call('_GauProMod_kGaussian_rcpp', PACKAGE = 'GauProMod', R, l, h, d, W, use_symmetry)
-}
-
-#' Matern Kernel Matrix
+#' # Dense Gaussian kernel
+#' X <- matrix(rnorm(20), 5, 4)
+#' W <- matrix(1, nrow(X), nrow(X))
+#' k <- kernel_dispatch_auto_rcpp(X, X, l=1, h=1, v=0, degree=0, c=0, d=0, W, "gaussian", TRUE)
 #'
-#' Computes the Matern kernel matrix for a given distance matrix.
-#'
-#' @param R Distance matrix (n x m).
-#' @param l Length scale parameter (>0).
-#' @param h Marginal standard deviation (scale factor).
-#' @param v Smoothness parameter (nu > 0).
-#' @param d Derivative order: 0 = kernel, 1 = first derivative, 2 = second derivative.
-#' @param W Weight matrix (n x m) to scale derivatives elementwise.
-#' @param use_symmetry Logical; if TRUE, enforces symmetry (only valid if R is square).
-#' @return Kernel matrix (n x m) or its derivative.
-kMatern_rcpp <- function(R, l, h, v, d, W, use_symmetry) {
-    .Call('_GauProMod_kMatern_rcpp', PACKAGE = 'GauProMod', R, l, h, v, d, W, use_symmetry)
-}
-
-#' Triangular Kernel Matrix
-#'
-#' Computes the triangular kernel matrix (distance-based).
-#'
-#' @param R Distance matrix (n x m).
-#' @param l Range/length scale (>0).
-#' @param h Scale factor.
-#' @param d Derivative order: 0 = kernel, 1 = first derivative, 2 = second derivative.
-#' @param W Weight matrix (n x m) to scale derivatives.
-#' @param use_symmetry Logical; if TRUE, enforces symmetry.
-#' @return Kernel matrix (n x m) or its derivative.
-kTriangular_rcpp <- function(R, l, h, d, W, use_symmetry) {
-    .Call('_GauProMod_kTriangular_rcpp', PACKAGE = 'GauProMod', R, l, h, d, W, use_symmetry)
-}
-
-#' Spherical Kernel Matrix
-#'
-#' Computes the spherical kernel matrix (distance-based).
-#'
-#' @param R Distance matrix (n x m).
-#' @param l Range/length scale (>0).
-#' @param h Scale factor.
-#' @param d Derivative order: 0 = kernel, 1 = first derivative, 2 = second derivative.
-#' @param W Weight matrix (n x m) to scale derivatives.
-#' @param use_symmetry Logical; if TRUE, enforces symmetry.
-#' @return Kernel matrix (n x m) or its derivative.
-kSpherical_rcpp <- function(R, l, h, d, W, use_symmetry) {
-    .Call('_GauProMod_kSpherical_rcpp', PACKAGE = 'GauProMod', R, l, h, d, W, use_symmetry)
-}
-
-#' Cauchy Kernel Matrix
-#'
-#' Computes the Cauchy kernel matrix (distance-based).
-#'
-#' @param R Distance matrix (n x m).
-#' @param l Length scale (>0).
-#' @param h Scale factor.
-#' @param v Shape parameter (nu > 0).
-#' @param d Derivative order: 0 = kernel, 1 = first derivative, 2 = second derivative.
-#' @param W Weight matrix (n x m) to scale derivatives.
-#' @param use_symmetry Logical; if TRUE, enforces symmetry.
-#' @return Kernel matrix (n x m) or its derivative.
-kCauchy_rcpp <- function(R, l, h, v, d, W, use_symmetry) {
-    .Call('_GauProMod_kCauchy_rcpp', PACKAGE = 'GauProMod', R, l, h, v, d, W, use_symmetry)
-}
-
-#' Linear (Gram) Kernel Matrix
-#'
-#' Computes the linear kernel matrix: K = h^2 * X %*% t(Y) + c^2.
-#'
-#' @param X Feature matrix (n x p).
-#' @param Y Feature matrix (m x p).
-#' @param h Scale factor for the inner product.
-#' @param c Bias term added to the kernel.
-#' @param d Derivative order: 0 = kernel, 1 = first derivative, 2 = second derivative.
-#' @param W Weight matrix (n x m) to scale derivatives.
-#' @param use_symmetry Logical; if TRUE, enforces symmetry (requires X and Y have same rows).
-#' @return Kernel matrix (n x m) or its derivative.
-kLinear_rcpp <- function(X, Y, h, c, d, W, use_symmetry) {
-    .Call('_GauProMod_kLinear_rcpp', PACKAGE = 'GauProMod', X, Y, h, c, d, W, use_symmetry)
-}
-
-#' Polynomial (Gram) Kernel Matrix
-#'
-#' Computes the polynomial kernel: K = h^2 * (X %*% t(Y) + c)^degree.
-#'
-#' @param X Feature matrix (n x p).
-#' @param Y Feature matrix (m x p).
-#' @param h Scale factor.
-#' @param degree Polynomial degree (integer >=1).
-#' @param c Bias term added inside the polynomial.
-#' @param d Derivative order: 0 = kernel, 1 = first derivative, 2 = second derivative.
-#' @param W Weight matrix (n x m) to scale derivatives.
-#' @param use_symmetry Logical; if TRUE, enforces symmetry (requires X and Y have same rows).
-#' @return Kernel matrix (n x m) or its derivative.
-kPolynomial_rcpp <- function(X, Y, h, degree, c, d, W, use_symmetry) {
-    .Call('_GauProMod_kPolynomial_rcpp', PACKAGE = 'GauProMod', X, Y, h, degree, c, d, W, use_symmetry)
+#' # Sparse distance-based Matern kernel
+#' library(Matrix)
+#' R <- as(Matrix(dist(matrix(rnorm(25),5,5))), "dgCMatrix")
+#' Wsp <- Matrix(1,5,5,sparse=TRUE)
+#' Ksp <- kernel_dispatch_auto_rcpp(R, R, l=1, h=1, v=1.5, degree=0, c=0, d=0, Wsp, "matern", TRUE)
+kernel_dispatch_auto_rcpp <- function(X_s, Y_s, l, h, v, degree, c, d, W_s, kernel, use_symmetry = FALSE) {
+    .Call('_GauProMod_kernel_dispatch_auto_rcpp', PACKAGE = 'GauProMod', X_s, Y_s, l, h, v, degree, c, d, W_s, kernel, use_symmetry)
 }
 

@@ -4,7 +4,7 @@
 \alias{crossDist_rcpp}
 \title{Cross-distance between two matrices (RcppEigen version)}
 \usage{
-crossDist_rcpp(X, Y, M = NULL)
+crossDist_rcpp(X, Y, M = NULL, use_symmetry = FALSE)
 }
 \arguments{
 \item{X}{a matrix (or vector, handled as a matrix)}
@@ -12,10 +12,13 @@ crossDist_rcpp(X, Y, M = NULL)
 \item{Y}{a matrix (or vector) with the same number of columns as X}
 
 \item{M}{a positive semi-definite matrix for Mahalanobis distance, or NULL for Euclidean.}
+
+\item{use_symmetry}{If TRUE, assumes X=Y, skips redundant calculations, and forces the diagonal to zero.}
 }
 \value{
 A distance matrix of dimension nrow(X) x nrow(Y).
 }
 \description{
 Compute the Mahalanobis or Euclidean distance between every row of two matrices.
+Dispatches to optimized symmetric/unsymmetric core functions.
 }

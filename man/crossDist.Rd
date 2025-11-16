@@ -4,7 +4,7 @@
 \alias{crossDist}
 \title{Cross-distance between two matrix}
 \usage{
-crossDist(X, Y, M = NULL)
+crossDist(X, Y, M = NULL, use_symmetry = use_symmetry)
 }
 \arguments{
 \item{X}{a matrix or vector}

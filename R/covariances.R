@@ -167,7 +167,7 @@ covm <- function(x, y, covModel, d = 0, dx = 1, use_symmetry = FALSE, ...){
     KK <- do.call(kernelName, list(x, y, covModel, d = d, w = 1, use_symmetry = use_symmetry, ...))
     return(KK)
   }else{
-    XY <- crossDist(x, y, M)
+    XY <- crossDist(x, y, M, use_symmetry = use_symmetry)
 
     # DERIVATIVE WEIGHTS
     if(d == 1){
@@ -309,188 +309,127 @@ sign2 <- function(x){
                 substr(kname,2,nchar(kname)) ))
 }
 
+# Generic R wrapper for all kernels
+kernel_wrapper <- function(X, Y, para, d = 0, w = 1, kernel_type, use_symmetry = FALSE){
+  # Extract common parameters, defaulting to 0 if missing
+  l      <- if(!is.null(para$l)) para$l else 0
+  h      <- if(!is.null(para$h)) para$h else 0
+  v      <- if(!is.null(para$v)) para$v else 0
+  degree <- if(!is.null(para$degree)) para$degree else 0
+  c      <- if(!is.null(para$c)) para$c else 0
+  
+  # Expand scalar w to full weight matrix
+  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(X), ncol=nrow(Y))
+  
+  # Shift X and Y if needed (for linear or polynomial)
+  if(kernel_type %in% c("kLinear", "kPolynomial")){
+    X <- X - c
+    Y <- Y - c
+  }
+  
+  # Call the corresponding Rcpp kernel function
+  K <- switch(kernel_type,
+              kGaussian   = kGaussian_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
+              kLinear     = kLinear_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
+              kPolynomial = kPolynomial_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
+              kMatern     = kMatern_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
+              kCauchy     = kCauchy_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
+              kTriangular = kTriangular_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
+              kSpherical  = kSpherical_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
+              stop("Unknown kernel type"))
+  
+  return(K)
+}
 
-#' Kernels (covariance functions) for Gaussian process
-#'
-#' Squared Exponential Covariance Function (or radial basis or Gaussian)
-#' over-smoothness, infinitely differentiable at h=0
-#' @name kernels
-#' @rdname kernels
-#' @export
+# General helper to ensure W is a matrix of correct dimensions
+make_W <- function(X, w) {
+  if (is.matrix(w)) {
+    return(w)
+  } else {
+    return(matrix(w, nrow = nrow(X), ncol = ncol(X)))
+  }
+}
+
+# ---------------- Distance-based kernels ----------------
 kGaussian <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
   l <- para$l
   h <- para$h
-  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(r), ncol=ncol(r))
-  K <- kGaussian_rcpp(r, l, h, d, W_mat, use_symmetry)
-  return(K)
-  # u <- -0.5 * (r / l)^2
-  # K <-  exp(u)
-  # K[abs(u) < .Machine$double.eps^0.5] <- 1
-  # # same results as in Solak et al.,
-  # # Derivative observations in Gaussian Process Models of Dynamic Systems
-  # #     if(d == 1){
-  # #       K <-   (r/l) * K
-  # #     }else if(d == 2){
-  # #       K <- (1 - r^2/l)/l * K
-  # #     }
-  # #     Pardo-Iguzquiza, E., and M. Chica-Olmo (2004),
-  # #     Estimation of gradients from sparse data by universal kriging,
-  # #     Water Resour. Res., 40, W12418, doi:10.1029/2004WR003081.
-  # if(d == 1){
-  #   K <-   (w*r/l^2) * K
-  #   #       K <-   (r/l^2) * K
-  # }else if(d == 2){
-  #   K <- (1 - w*(r/l)^2)*(1/l^2) * K
-  #   #       K <- (1 -(r/l)^2)*(1/l^2) * K
-  # }
-  # K <- K*h^2
-  # K <- kGaussian_rcpp(r, l, h, d, w )
-  # return(K)
-}
-
-#' #' @export
-#' linear <- function(x, y, covModel, d = 0, w = 1){
-#'   warning("Deprecated function! Use 'kLinear' instead!\n")
-#'   kLinear(x = x, y = y, para = covModel, d = d, w = w)
-#' }
-
-#' @name kLinear
-#' @rdname kernels
-#' @export
-kLinear <- function(x, y, para, d = 0, w = 1, use_symmetry = FALSE){
-  # b <- para$b
-  # h <- para$h
-  # cc <- para$c
-  # x <- x - cc
-  # y <- y - cc
-  # if(is.null(dim(x))){
-  #   XY <- outer(x, y, "*")
-  # }else{
-  #   XY <- x %*% t(y)
-  # }
-  # K <- XY * h^2 + b^2
-  
-  b <- para$b
-  h <- para$h
-  cc <- para$c
-  x <- x - cc
-  y <- y - cc
-  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(r), ncol=ncol(r))
-  kLinear_rcpp(x, y, h, b, d, W_mat, use_symmetry)
+  v <- 0       # not used for Gaussian
+  degree <- 0
+  c <- 0
+  W_mat <- make_W(r, w)
+  K <- kernel_dispatch_auto_rcpp(r, r, l, h, v, degree, c, d, W_mat, "gaussian", use_symmetry)
   return(K)
 }
 
-#' @name kPolynomial
-#' @rdname kernels
-#' @export
-kPolynomial <- function(x, y, para, d = 0, w = 1, use_symmetry = FALSE){
-  degree <- para$degree
-  h <- para$h
-  cc <- para$c
-  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(r), ncol=ncol(r))
-  kPolynomial_rcpp(x, y, h, degree, cc, d, W_mat, use_symmetry)
-  return(K)
-}
-
-
-# Generalized Cauchy model
-# gCauchy <- function(){
-#   C = ss.*(1 + ha.^2).^(-m.alpha);
-# }
-
-#' #' @export
-#' matern <- function(r, covModel, d = 0, w = 1){
-#'   warning("Deprecated function! Use 'kMatern' instead!\n")
-#'   kMatern(r = r, para = covModel, d = d, w = w)
-#' }
-
-# MATERN
-# adjustable smoothness via parameter v
-# second-order smooth fiel: v >= 2
-# C. E. Rasmussen & C. K. I. Williams, Gaussian Processes for Machine Learning,
-# the MIT Press, 2006, ISBN 026218253X. c 2006
-# Massachusetts Institute of Technology. www.GaussianProcess.org/gpml
-# Matern covariance matrix
-#' @name kMatern
-#' @rdname kernels
-#' @export
 kMatern <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
   l <- para$l
+  h <- para$h
   v <- para$v
-  h <- para$h
-  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(r), ncol=ncol(r))
-  K <- kMatern_rcpp(r, l, h, v, d, W_mat, use_symmetry)
-  return(K)
-  # u <-  r /l
-  # if(d == 0){
-  #   if( v == 1/2 ){
-  #     K <- exp(- r/l )
-  #   }else if( v == 3/2){
-  #     u <- sqrt(3) * r / l
-  #     K <- (1 + u) * exp(- u)
-  #   }else if(v==5/2){
-  #     u <- sqrt(5) * r / l
-  #     K <- (1 + u + (5 * r^2) / (3 * l^2)) * exp(- u)
-  #   }else{
-  #     gamV <- gamma(v)
-  #     besK <- besselK(u, v)
-  #     K <- ( 2^(1-v) / gamV )* u^v  * besK
-  #   }
-  #   K[ abs(u) < .Machine$double.eps ^ 0.5 ] <- 1
-  #   K <- K*h^2
-  # }else if(d == 1){
-  #   common <- h^2 * ( 2^(1-v) / gamma(v) ) * u^v
-  #   K <- w * (1/l) *  common * besselK(u, v -1)
-  #   K[u < .Machine$double.eps ^ 0.5 ] <- 0
-  #   #     common = ss.*2^(1 - m.nu)./gamma(m.nu).*hag.^m.nu;
-  #   #     hpg = hproj(lag > eps);
-  #   #     C(lag > eps) = hpg.*common./a.*besselk(m.nu-1,hag);
-  #   #     C(lag <= eps) = 0.0;  % specify manually
-  # }else if(d == 2){
-  #   #     cc = ss.*2^(1 - m.nu)./gamma(m.nu).*hag.^(m.nu - 2);
-  #   k1 <- h^2 * ( 2^(1-v) / gamma(v) ) * u^(v - 2)
-  #   k2 <- ( u * besselK(u, v -1)  -  u^2 * w * besselK(u, v -2))
-  #   K <-  (1/l)^2 *k1 * k2
-  #   k0 <- h^2 * gamma(v)/(2*l^2 * (v-1)*gamma(v))
-  #   K[u < .Machine$double.eps ^ 0.5 ] <-  k0
-  # }
-  # return(K)
-  #   ifelse(u>0,( 2^(1-v) / gamV )* u^v * gamV * besK,1)
-}
-
-#' @name kTriangular
-#' @rdname kernels
-#' @export
-kTriangular <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
-  l <- para$l
-  h <- para$h
-  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(r), ncol=ncol(r))
-  K <- kTriangular_rcpp(r, l, h, d, W_mat, use_symmetry)
+  degree <- 0
+  c <- 0
+  W_mat <- make_W(r, w)
+  K <- kernel_dispatch_auto_rcpp(r, r, l, h, v, degree, c, d, W_mat, "matern", use_symmetry)
   return(K)
 }
 
-#' @name kSpherical
-#' @rdname kernels
-#' @export
-kSpherical <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
-  l <- para$l
-  h <- para$h
-  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(r), ncol=ncol(r))
-  K <- kSpherical_rcpp(r, l, h, d, W_mat, use_symmetry)
-  return(K)
-}
-
-#' @name kCauchy
-#' @rdname kernels
-#' @export
 kCauchy <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
   l <- para$l
   h <- para$h
   v <- para$v
-  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(r), ncol=ncol(r))
-  K <- kCauchy_rcpp(r, l, h, v, d, W_mat, use_symmetry)
+  degree <- 0
+  c <- 0
+  W_mat <- make_W(r, w)
+  K <- kernel_dispatch_auto_rcpp(r, r, l, h, v, degree, c, d, W_mat, "cauchy", use_symmetry)
   return(K)
 }
+
+kTriangular <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
+  l <- para$l
+  h <- para$h
+  v <- 0
+  degree <- 0
+  c <- 0
+  W_mat <- make_W(r, w)
+  K <- kernel_dispatch_auto_rcpp(r, r, l, h, v, degree, c, d, W_mat, "triangular", use_symmetry)
+  return(K)
+}
+
+kSpherical <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
+  l <- para$l
+  h <- para$h
+  v <- 0
+  degree <- 0
+  c <- 0
+  W_mat <- make_W(r, w)
+  K <- kernel_dispatch_auto_rcpp(r, r, l, h, v, degree, c, d, W_mat, "spherical", use_symmetry)
+  return(K)
+}
+
+# ---------------- Feature/Gram kernels ----------------
+kLinear <- function(X, Y, para, d = 0, w = 1, use_symmetry = FALSE){
+  b <- para$b    # scale factor
+  h <- para$h
+  c <- para$c    # bias
+  v <- 0
+  degree <- 1
+  W_mat <- make_W(X,w)
+  # Subtract bias from features if desired
+  K <- kernel_dispatch_auto_rcpp(X - c, Y - c, b, h, v, degree, c, d, W_mat, "linear", use_symmetry)
+  return(K)
+}
+
+kPolynomial <- function(X, para, d = 0, w = 1, use_symmetry = FALSE){
+  degree <- para$degree
+  h <- para$h
+  c <- para$c
+  l <- 1    # length scale unused for polynomial
+  v <- 0
+  W_mat <- make_W(X,  w)
+  K <- kernel_dispatch_auto_rcpp(X - c, Y - c, l, h, v, degree, c, d, W_mat, "polynomial", use_symmetry)
+  return(K)
+}
+
 
 #' Cross-distance between two matrix
 #' 
@@ -503,18 +442,18 @@ kCauchy <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
 #' @param M a positive semidefinite matrix (nrow(M) = ncol(M) = ncol(X))
 #' @name crossDist
 #' @export
-crossDist <- function(X, Y, M = NULL){
+crossDist <- function(X, Y, M = NULL, use_symmetry = use_symmetry){
   # Ensure X and Y are matrices for RcppEigen
-  X_mat <- as.matrix(X)
-  Y_mat <- as.matrix(Y)
+  # X_mat <- as.matrix(X)
+  # Y_mat <- as.matrix(Y)
   
   # Original check
-  if(!identical(ncol(X_mat), ncol(Y_mat))){
-    stop("X and Y must have identical number of columns!")
-  }
+  # if(!identical(ncol(X_mat), ncol(Y_mat))){
+  #   stop("X and Y must have identical number of columns!")
+  # }
   # Call the Rcpp version
   # The Rcpp function handles both 1D and 2D cases efficiently
-  return(crossDist_rcpp(X_mat, Y_mat, M))
+  return(crossDist_rcpp(as.matrix(X), as.matrix(Y), M, use_symmetry = use_symmetry))
 }
 # crossDist <- function(X, Y, M = NULL){
 #   if(!identical(ncol(X), ncol(Y))){

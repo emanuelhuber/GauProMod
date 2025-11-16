@@ -69,21 +69,22 @@ BEGIN_RCPP
 END_RCPP
 }
 // crossDist_rcpp
-Eigen::MatrixXd crossDist_rcpp(const Eigen::Map<Eigen::MatrixXd>& X, const Eigen::Map<Eigen::MatrixXd>& Y, const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& M);
-RcppExport SEXP _GauProMod_crossDist_rcpp(SEXP XSEXP, SEXP YSEXP, SEXP MSEXP) {
+Eigen::MatrixXd crossDist_rcpp(const Eigen::Map<Eigen::MatrixXd>& X, const Eigen::Map<Eigen::MatrixXd>& Y, const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& M, bool use_symmetry);
+RcppExport SEXP _GauProMod_crossDist_rcpp(SEXP XSEXP, SEXP YSEXP, SEXP MSEXP, SEXP use_symmetrySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& >::type M(MSEXP);
-    rcpp_result_gen = Rcpp::wrap(crossDist_rcpp(X, Y, M));
+    Rcpp::traits::input_parameter< bool >::type use_symmetry(use_symmetrySEXP);
+    rcpp_result_gen = Rcpp::wrap(crossDist_rcpp(X, Y, M, use_symmetry));
     return rcpp_result_gen;
 END_RCPP
 }
-// crossDist_sparse_noloop
-Eigen::SparseMatrix<double> crossDist_sparse_noloop(const Eigen::Map<Eigen::MatrixXd>& X, const Eigen::Map<Eigen::MatrixXd>& Y, double rmax, const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& M);
-RcppExport SEXP _GauProMod_crossDist_sparse_noloop(SEXP XSEXP, SEXP YSEXP, SEXP rmaxSEXP, SEXP MSEXP) {
+// crossDist_sparse
+Eigen::SparseMatrix<double> crossDist_sparse(const Eigen::Map<Eigen::MatrixXd>& X, const Eigen::Map<Eigen::MatrixXd>& Y, double rmax, const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& M);
+RcppExport SEXP _GauProMod_crossDist_sparse(SEXP XSEXP, SEXP YSEXP, SEXP rmaxSEXP, SEXP MSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -91,124 +92,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< double >::type rmax(rmaxSEXP);
     Rcpp::traits::input_parameter< const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& >::type M(MSEXP);
-    rcpp_result_gen = Rcpp::wrap(crossDist_sparse_noloop(X, Y, rmax, M));
+    rcpp_result_gen = Rcpp::wrap(crossDist_sparse(X, Y, rmax, M));
     return rcpp_result_gen;
 END_RCPP
 }
-// kGaussian_rcpp
-Eigen::MatrixXd kGaussian_rcpp(const Eigen::Map<Eigen::MatrixXd> R, double l, double h, int d, const Eigen::Map<Eigen::MatrixXd> W, bool use_symmetry);
-RcppExport SEXP _GauProMod_kGaussian_rcpp(SEXP RSEXP, SEXP lSEXP, SEXP hSEXP, SEXP dSEXP, SEXP WSEXP, SEXP use_symmetrySEXP) {
+// kernel_dispatch_auto_rcpp
+SEXP kernel_dispatch_auto_rcpp(SEXP X_s, SEXP Y_s, double l, double h, double v, int degree, double c, int d, SEXP W_s, std::string kernel, bool use_symmetry);
+RcppExport SEXP _GauProMod_kernel_dispatch_auto_rcpp(SEXP X_sSEXP, SEXP Y_sSEXP, SEXP lSEXP, SEXP hSEXP, SEXP vSEXP, SEXP degreeSEXP, SEXP cSEXP, SEXP dSEXP, SEXP W_sSEXP, SEXP kernelSEXP, SEXP use_symmetrySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type R(RSEXP);
-    Rcpp::traits::input_parameter< double >::type l(lSEXP);
-    Rcpp::traits::input_parameter< double >::type h(hSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type W(WSEXP);
-    Rcpp::traits::input_parameter< bool >::type use_symmetry(use_symmetrySEXP);
-    rcpp_result_gen = Rcpp::wrap(kGaussian_rcpp(R, l, h, d, W, use_symmetry));
-    return rcpp_result_gen;
-END_RCPP
-}
-// kMatern_rcpp
-Eigen::MatrixXd kMatern_rcpp(const Eigen::Map<Eigen::MatrixXd> R, double l, double h, double v, int d, const Eigen::Map<Eigen::MatrixXd> W, bool use_symmetry);
-RcppExport SEXP _GauProMod_kMatern_rcpp(SEXP RSEXP, SEXP lSEXP, SEXP hSEXP, SEXP vSEXP, SEXP dSEXP, SEXP WSEXP, SEXP use_symmetrySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type R(RSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type X_s(X_sSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Y_s(Y_sSEXP);
     Rcpp::traits::input_parameter< double >::type l(lSEXP);
     Rcpp::traits::input_parameter< double >::type h(hSEXP);
     Rcpp::traits::input_parameter< double >::type v(vSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type W(WSEXP);
-    Rcpp::traits::input_parameter< bool >::type use_symmetry(use_symmetrySEXP);
-    rcpp_result_gen = Rcpp::wrap(kMatern_rcpp(R, l, h, v, d, W, use_symmetry));
-    return rcpp_result_gen;
-END_RCPP
-}
-// kTriangular_rcpp
-Eigen::MatrixXd kTriangular_rcpp(const Eigen::Map<Eigen::MatrixXd> R, double l, double h, int d, const Eigen::Map<Eigen::MatrixXd> W, bool use_symmetry);
-RcppExport SEXP _GauProMod_kTriangular_rcpp(SEXP RSEXP, SEXP lSEXP, SEXP hSEXP, SEXP dSEXP, SEXP WSEXP, SEXP use_symmetrySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type R(RSEXP);
-    Rcpp::traits::input_parameter< double >::type l(lSEXP);
-    Rcpp::traits::input_parameter< double >::type h(hSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type W(WSEXP);
-    Rcpp::traits::input_parameter< bool >::type use_symmetry(use_symmetrySEXP);
-    rcpp_result_gen = Rcpp::wrap(kTriangular_rcpp(R, l, h, d, W, use_symmetry));
-    return rcpp_result_gen;
-END_RCPP
-}
-// kSpherical_rcpp
-Eigen::MatrixXd kSpherical_rcpp(const Eigen::Map<Eigen::MatrixXd> R, double l, double h, int d, const Eigen::Map<Eigen::MatrixXd> W, bool use_symmetry);
-RcppExport SEXP _GauProMod_kSpherical_rcpp(SEXP RSEXP, SEXP lSEXP, SEXP hSEXP, SEXP dSEXP, SEXP WSEXP, SEXP use_symmetrySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type R(RSEXP);
-    Rcpp::traits::input_parameter< double >::type l(lSEXP);
-    Rcpp::traits::input_parameter< double >::type h(hSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type W(WSEXP);
-    Rcpp::traits::input_parameter< bool >::type use_symmetry(use_symmetrySEXP);
-    rcpp_result_gen = Rcpp::wrap(kSpherical_rcpp(R, l, h, d, W, use_symmetry));
-    return rcpp_result_gen;
-END_RCPP
-}
-// kCauchy_rcpp
-Eigen::MatrixXd kCauchy_rcpp(const Eigen::Map<Eigen::MatrixXd> R, double l, double h, double v, int d, const Eigen::Map<Eigen::MatrixXd> W, bool use_symmetry);
-RcppExport SEXP _GauProMod_kCauchy_rcpp(SEXP RSEXP, SEXP lSEXP, SEXP hSEXP, SEXP vSEXP, SEXP dSEXP, SEXP WSEXP, SEXP use_symmetrySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type R(RSEXP);
-    Rcpp::traits::input_parameter< double >::type l(lSEXP);
-    Rcpp::traits::input_parameter< double >::type h(hSEXP);
-    Rcpp::traits::input_parameter< double >::type v(vSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type W(WSEXP);
-    Rcpp::traits::input_parameter< bool >::type use_symmetry(use_symmetrySEXP);
-    rcpp_result_gen = Rcpp::wrap(kCauchy_rcpp(R, l, h, v, d, W, use_symmetry));
-    return rcpp_result_gen;
-END_RCPP
-}
-// kLinear_rcpp
-Eigen::MatrixXd kLinear_rcpp(const Eigen::Map<Eigen::MatrixXd> X, const Eigen::Map<Eigen::MatrixXd> Y, double h, double c, int d, const Eigen::Map<Eigen::MatrixXd> W, bool use_symmetry);
-RcppExport SEXP _GauProMod_kLinear_rcpp(SEXP XSEXP, SEXP YSEXP, SEXP hSEXP, SEXP cSEXP, SEXP dSEXP, SEXP WSEXP, SEXP use_symmetrySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< double >::type h(hSEXP);
-    Rcpp::traits::input_parameter< double >::type c(cSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type W(WSEXP);
-    Rcpp::traits::input_parameter< bool >::type use_symmetry(use_symmetrySEXP);
-    rcpp_result_gen = Rcpp::wrap(kLinear_rcpp(X, Y, h, c, d, W, use_symmetry));
-    return rcpp_result_gen;
-END_RCPP
-}
-// kPolynomial_rcpp
-Eigen::MatrixXd kPolynomial_rcpp(const Eigen::Map<Eigen::MatrixXd> X, const Eigen::Map<Eigen::MatrixXd> Y, double h, int degree, double c, int d, const Eigen::Map<Eigen::MatrixXd> W, bool use_symmetry);
-RcppExport SEXP _GauProMod_kPolynomial_rcpp(SEXP XSEXP, SEXP YSEXP, SEXP hSEXP, SEXP degreeSEXP, SEXP cSEXP, SEXP dSEXP, SEXP WSEXP, SEXP use_symmetrySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< double >::type h(hSEXP);
     Rcpp::traits::input_parameter< int >::type degree(degreeSEXP);
     Rcpp::traits::input_parameter< double >::type c(cSEXP);
     Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type W(WSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type W_s(W_sSEXP);
+    Rcpp::traits::input_parameter< std::string >::type kernel(kernelSEXP);
     Rcpp::traits::input_parameter< bool >::type use_symmetry(use_symmetrySEXP);
-    rcpp_result_gen = Rcpp::wrap(kPolynomial_rcpp(X, Y, h, degree, c, d, W, use_symmetry));
+    rcpp_result_gen = Rcpp::wrap(kernel_dispatch_auto_rcpp(X_s, Y_s, l, h, v, degree, c, d, W_s, kernel, use_symmetry));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -218,15 +123,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_GauProMod_GPpredmean_rcpp", (DL_FUNC) &_GauProMod_GPpredmean_rcpp, 7},
     {"_GauProMod_cholupdateL_rcpp", (DL_FUNC) &_GauProMod_cholupdateL_rcpp, 3},
     {"_GauProMod_cholfac_rcpp", (DL_FUNC) &_GauProMod_cholfac_rcpp, 1},
-    {"_GauProMod_crossDist_rcpp", (DL_FUNC) &_GauProMod_crossDist_rcpp, 3},
-    {"_GauProMod_crossDist_sparse_noloop", (DL_FUNC) &_GauProMod_crossDist_sparse_noloop, 4},
-    {"_GauProMod_kGaussian_rcpp", (DL_FUNC) &_GauProMod_kGaussian_rcpp, 6},
-    {"_GauProMod_kMatern_rcpp", (DL_FUNC) &_GauProMod_kMatern_rcpp, 7},
-    {"_GauProMod_kTriangular_rcpp", (DL_FUNC) &_GauProMod_kTriangular_rcpp, 6},
-    {"_GauProMod_kSpherical_rcpp", (DL_FUNC) &_GauProMod_kSpherical_rcpp, 6},
-    {"_GauProMod_kCauchy_rcpp", (DL_FUNC) &_GauProMod_kCauchy_rcpp, 7},
-    {"_GauProMod_kLinear_rcpp", (DL_FUNC) &_GauProMod_kLinear_rcpp, 7},
-    {"_GauProMod_kPolynomial_rcpp", (DL_FUNC) &_GauProMod_kPolynomial_rcpp, 8},
+    {"_GauProMod_crossDist_rcpp", (DL_FUNC) &_GauProMod_crossDist_rcpp, 4},
+    {"_GauProMod_crossDist_sparse", (DL_FUNC) &_GauProMod_crossDist_sparse, 4},
+    {"_GauProMod_kernel_dispatch_auto_rcpp", (DL_FUNC) &_GauProMod_kernel_dispatch_auto_rcpp, 11},
     {NULL, NULL, 0}
 };
 
