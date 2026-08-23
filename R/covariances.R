@@ -316,38 +316,58 @@ kernel_wrapper <- function(X, Y, para, d = 0, w = 1, kernel_type, use_symmetry =
   h      <- if(!is.null(para$h)) para$h else 0
   v      <- if(!is.null(para$v)) para$v else 0
   degree <- if(!is.null(para$degree)) para$degree else 0
-  c      <- if(!is.null(para$c)) para$c else 0
+  cc      <- if(!is.null(para$c)) para$c else 0
   
   # Expand scalar w to full weight matrix
-  W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(X), ncol=nrow(Y))
+  # W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(X), ncol=nrow(Y))
+  W_mat <- make_W(X, Y, w)
   
   # Shift X and Y if needed (for linear or polynomial)
   if(kernel_type %in% c("kLinear", "kPolynomial")){
-    X <- X - c
-    Y <- Y - c
+    X <- X - cc
+    Y <- Y - cc
   }
   
   # Call the corresponding Rcpp kernel function
   K <- switch(kernel_type,
-              kGaussian   = kGaussian_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
-              kLinear     = kLinear_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
-              kPolynomial = kPolynomial_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
-              kMatern     = kMatern_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
-              kCauchy     = kCauchy_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
-              kTriangular = kTriangular_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
-              kSpherical  = kSpherical_rcpp(X, Y, l, h, v, degree, c, d, W_mat, use_symmetry),
+              kGaussian   = kGaussian_rcpp(
+                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
+              kLinear     = kLinear_rcpp(
+                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
+              kPolynomial = kPolynomial_rcpp(
+                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
+              kMatern     = kMatern_rcpp(
+                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
+              kCauchy     = kCauchy_rcpp(
+                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
+              kTriangular = kTriangular_rcpp(
+                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
+              kSpherical  = kSpherical_rcpp(
+                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
               stop("Unknown kernel type"))
   
   return(K)
 }
 
 # General helper to ensure W is a matrix of correct dimensions
-make_W <- function(X, w) {
+make_W <- function(X, w, Y = NULL) {
   if (is.matrix(w)) {
     return(w)
+  } 
+  # else {
+  #   return(matrix(w, nrow = nrow(X), ncol = ncol(X)))
+  # }
+  # If Y is omitted, X is assumed to already represent
+  # the pairwise matrix dimensions.
+  if (is.null(Y)) {
+    nx <- nrow(X)
+    ny <- ncol(X)
   } else {
-    return(matrix(w, nrow = nrow(X), ncol = ncol(X)))
+    nx <- if (is.null(dim(X))) length(X) else nrow(X)
+    ny <- if (is.null(dim(Y))) length(Y) else nrow(Y)
   }
+  
+  matrix(w, nrow = nx, ncol = ny)
 }
 
 # ---------------- Distance-based kernels ----------------
@@ -410,12 +430,16 @@ kSpherical <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
 kLinear <- function(X, Y, para, d = 0, w = 1, use_symmetry = FALSE){
   b <- para$b    # scale factor
   h <- para$h
-  c <- para$c    # bias
+  # c <- para$c    # bias
   v <- 0
   degree <- 1
-  W_mat <- make_W(X,w)
+  if(is.null(dim(X))) dim(X) <- c(length(X), 1)
+  if(is.null(dim(Y))) dim(Y) <- c(length(Y), 1)
+  W_mat <- make_W(X, w, Y)
   # Subtract bias from features if desired
-  K <- kernel_dispatch_auto_rcpp(X - c, Y - c, b, h, v, degree, c, d, W_mat, "linear", use_symmetry)
+  K <- kernel_dispatch_auto_rcpp(X - para$c, Y - para$c, 
+                                 b, h, v, degree, para$c, d, W_mat, 
+                                 "linear", use_symmetry)
   return(K)
 }
 

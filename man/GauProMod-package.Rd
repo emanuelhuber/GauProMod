@@ -26,4 +26,9 @@ Several books!
 \author{
 \strong{Maintainer}: Emanuel Huber \email{emanuel.huber@alumni.ethz.ch}
 
+Authors:
+\itemize{
+  \item Emanuel Huber \email{emanuel.huber@alumni.ethz.ch}
+}
+
 }

@@ -218,7 +218,7 @@ Eigen::MatrixXd kSpherical_rcpp_fast(const Eigen::MatrixXd &R,double l,double h,
 
 // --------------------- Gram/Dense Linear & Polynomial ---------------------
 Eigen::MatrixXd kLinear_rcpp_fast(const Eigen::MatrixXd &X,const Eigen::MatrixXd &Y,
-                                  double h,double c,int d,
+                                  double h, double c, int d,
                                   const Eigen::MatrixXd &W,bool use_symmetry) {
   Eigen::ArrayXXd base = (X*Y.transpose()).array();
   Eigen::ArrayXXd K;
@@ -542,14 +542,27 @@ Eigen::MatrixXd kernel_matrix_rcpp(
    const std::string &kernel, 
    bool use_symmetry) {
  
- if(X.rows() != W.rows() || X.cols() != W.cols())
-   Rcpp::stop("Weight matrix W must match output dimensions.");
- 
- if(use_symmetry && (X.rows() != Y.rows()))
-   Rcpp::stop("use_symmetry requires X and Y to have same number of rows.");
-
- // Convert kernel string to enum for faster dispatch
+ // if(X.rows() != W.rows() || X.cols() != W.cols())
+ //   Rcpp::stop("Weight matrix W must match output dimensions.");
+ // 
+ // if(use_symmetry && (X.rows() != Y.rows()))
+ //   Rcpp::stop("use_symmetry requires X and Y to have same number of rows.");
+  
+  // Convert kernel string to enum for faster dispatch
   KernelType ktype = kernel_string_to_enum(kernel);
+  
+  // Gram/feature kernels (linear, polynomial): output is (X.rows() x Y.rows()).
+  // Distance-based kernels: X already IS the output-shaped matrix.
+  int expected_rows = X.rows();
+  int expected_cols = (ktype == KernelType::LINEAR || ktype == KernelType::POLYNOMIAL)
+    ? Y.rows() : X.cols();
+  
+  if(W.rows() != expected_rows || W.cols() != expected_cols)
+    Rcpp::stop("Weight matrix W must match output dimensions.");
+  
+  if(use_symmetry && (X.rows() != Y.rows()))
+    Rcpp::stop("use_symmetry requires X and Y to have same number of rows.");  
+
   switch(ktype) {
       case KernelType::GAUSSIAN: return kGaussian_rcpp_fast(X, l, h, d, W, use_symmetry);
       case KernelType::CAUCHY: return kCauchy_rcpp_fast(X, l, h, v, d, W, use_symmetry);

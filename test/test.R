@@ -13,21 +13,61 @@ devtools::install_local("/media/huber/Elements/UNIBAS/software/codeR/package_Gau
 # FIX PROBLEM GP 1D derivative.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 library(GauProMod)
 library(plot3D)
 library(RColorBrewer)
+
+#observations
+obs <- list(x=c(-4, -3, -1, 0, 4),
+            y=c(-2,  0,  1, 2, 0))
+# targets
+targ <- list("x"=seq(-10,10,len=200))
+
+
+# linear kernel
+covModel <- list(kernel="linear",
+                 b = 1,         # slope
+                 h = 1.5,       # std. deviation
+                 c = 0)         # constant
+
+
+sigma <- 0.2
+
+Kxx       <- covm( obs$x,  obs$x, covModels[[1]], use_symmetry = TRUE)
+x <- obs$x
+y <- obs$y
+
+
+KK <- do.call(kernelName, list(x, y, covModel, d = d, w = 1, use_symmetry = use_symmetry, ...))
+para <- list(x, y, covModel, d = d, w = 1, use_symmetry = use_symmetry)
+
+X <- x
+Y <- y
+
+para <- covModel
+
+if(is.null(dim(X))) dim(X) <- c(length(X), 1)
+if(is.null(dim(Y))) dim(Y) <- c(length(Y), 1)
+
+b <- para$b    # scale factor
+h <- para$h
+# c <- para$c    # bias
+v <- 0
+degree <- 1
+W_mat <- make_W(X, w, Y)
+# Subtract bias from features if desired
+K <- kernel_dispatch_auto_rcpp(X - para$c, Y - para$c, 
+                               b, h, v, degree, para$c, d, W_mat, 
+                               "linear", use_symmetry)
+
+
+
+GP <- gpCond(obs = obs, targ = targ, covModels=list(pos=covModel), 
+             sigma = sigma, op = 0)
+names(GP)
+
+
+
 
 #------------------------------------------------------------------------------#
 
