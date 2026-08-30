@@ -60,25 +60,6 @@ coded in C++ and based on the EIGEN library (through RcppEigen)
 | **Simulation** | `gpSim` | Generates sample trajectories/realizations across user-defined spatial-temporal grids. |
 | **Numerical Stability** | `cholfac`, `correctCovMat` | Handles ill-conditioned covariance matrices by adding diagonal jitter or correcting non-positive eigenvalues. |
 | **Grid Generation** | `matGrid`, `vecGrid` | Constructs evaluation coordinate matrices for predictions and spatial-temporal visualization. |
-Currently implemented/to do:
-
-- [x] Posterior Gaussian Process with Gaussian likelihood (Gaussian
-  process conditioned to noise-free and noisy observations)
-- [x] Space-time Gaussian process
-- [x] Gaussian Process with monomial mean functions with vague Gaussian
-  prior on the coefficient parameters.
-- [x] Gaussian Process conditioned to derivative observations
-- [x] Anisotropic covariance functions (scale and rotation)
-- [x] Log marginal likelihood of the Gaussian process
-- [x] Cross-matrix distance (distance between every rows of each
-  matrix): `crossdist(x,y,M)` (with `M` a positive semidefinite matrix
-  for anisotropic distances)
-- [x] Covariance function: Matern, Gaussian, linear
-- [ ] maximum likelihood hyper-parameter estimation
-- [ ] McMC hyper-parameter sampling
-- [ ] spatially varying covariance function
-- [ ] Gaussian Process approximations (to deal with larger data set)
-- [ ] add other covariance models
 
 This is an ongoing project. If you have any questions, don’t hesitate to
 contact me:
@@ -90,8 +71,8 @@ Thank you!
 ## How to install/load
 
 ``` r
-if(!require("devtools")) install.packages("devtools")
-devtools::install_github("emanuelhuber/GauProMod")
+if(!require("remotes")) install.packages("remotes")
+remotes::install_github("emanuelhuber/GauProMod")
 ```
 
 ## Short tutorial
