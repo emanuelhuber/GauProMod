@@ -1,13 +1,65 @@
 GauProMod
 ================
 Emanuel Huber
-2025-11-02
+2026-10-30
 
 R functions for Gaussian process (GP) modelling. The core functions are
 coded in C++ and based on the EIGEN library (through RcppEigen)
 
-## Notes
+## Feature Implementation Checklist
 
+### Core Capabilities & Completed Features
+
+- [x] **Posterior Gaussian Process with Gaussian Likelihood**
+  - Gaussian process conditioned on both noise-free and noisy observations (`gpCond`).
+- [x] **Space-Time Gaussian Process Support**
+  - Supported via `gpCond` and coordinate mapping utilities such as `setPosTime`.
+- [x] **Gaussian Process with Monomial Mean Functions**
+  - Supports vague Gaussian priors on coefficient parameters (`gpLogLikMean_rcpp`).
+- [x] **Gaussian Process Conditioned on Derivative Observations**
+  - Supports derivative data conditioning for specialized spatial-temporal models.
+- [x] **Anisotropic Covariance Functions**
+  - Generalized scale parameters and custom rotation matrices $M$.
+- [x] **Log Marginal Likelihood Evaluation**
+  - Fast likelihood evaluation via `gpLogLik`, `gpLogLik_rcpp`, and `gpLogLikMean_rcpp`.
+- [x] **Cross-Matrix Distance Calculations**
+  - Efficient distance computations: `crossDist(x, y, M)`, `crossDist_rcpp`, and `crossDist_sparse`.
+- [x] **Flexible Kernel Selection**
+  - Matérn 3/2 & 5/2
+  - Gaussian / Squared Exponential (`sqex`)
+  - Exponential
+  - Linear
+- [x] **Maximum Likelihood Hyper-Parameter Estimation (`gpFit`)**
+  - Optimization via `gpNegLogLik` and numerical gradients (`.centralDiffGrad`).
+- [x] **Gaussian Process Simulation & Trajectory Generation (`gpSim`)**
+  - Simulates Gaussian process sample paths across evaluation grids.
+- [x] **Robust Numerical Stabilization**
+  - Automatic jitter addition (`cholfac`) and positive-definiteness adjustments (`correctCovMat`).
+- [x] **High-Performance C++ Backend (Rcpp Integration)**
+  - C++ acceleration for prediction, likelihood evaluations, distance matrices, and Cholesky decompositions (`src/`).
+- [x] **Efficient Multivariate Normal Sampling (`mvrnorm2`)**
+  - Fast sampling routine for high-dimensional normal distributions.
+- [x] **Evaluation Grid Utilities**
+  - Domain grid generation tools (`matGrid`, `vecGrid`).
+
+
+### Planned & Future Enhancements
+
+- [ ] **MCMC Hyper-Parameter Sampling**: Bayesian inference via Markov Chain Monte Carlo for full posterior uncertainty over hyper-parameters.
+- [ ] **Spatially Varying (Non-Stationary) Covariance Functions**: Support for spatially dynamic length-scales and non-stationary kernels.
+- [ ] **Large-Scale Gaussian Process Approximations**: Scalable GP methods for large datasets (e.g., Sparse GPs, Inducing Point Methods, FITC, VFE).
+- [ ] **Moving / Rolling Covariance Functions for Time Series**: Online/sequential covariance updates with exponential forgetting mechanisms for dynamic time-series models.
+
+## Core Technical Implementation Details
+
+| Feature / Utility | Module / Rcpp Source | Description |
+| :--- | :--- | :--- |
+| **Model Fitting** | `gpFit`, `gpNegLogLik` | Fits covariance parameters and mean model coefficients using numerical gradient optimization. |
+| **Covariance Kernels** | `covm.cpp`, `covm` | Computes covariance matrices for Matérn (3/2, 5/2), Gaussian, Exponential, and Linear kernels. |
+| **Likelihood Calculation** | `gpLogLik.cpp`, `gpLogLik` | Evaluates the log marginal likelihood of conditioned Gaussian processes. |
+| **Simulation** | `gpSim` | Generates sample trajectories/realizations across user-defined spatial-temporal grids. |
+| **Numerical Stability** | `cholfac`, `correctCovMat` | Handles ill-conditioned covariance matrices by adding diagonal jitter or correcting non-positive eigenvalues. |
+| **Grid Generation** | `matGrid`, `vecGrid` | Constructs evaluation coordinate matrices for predictions and spatial-temporal visualization. |
 Currently implemented/to do:
 
 - [x] Posterior Gaussian Process with Gaussian likelihood (Gaussian
