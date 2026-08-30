@@ -2,20 +2,34 @@
 % Please edit documentation in R/covariances.R
 \name{crossDist}
 \alias{crossDist}
-\title{Cross-distance between two matrix}
+\title{Cross-distance between two matrices}
 \usage{
-crossDist(X, Y, M = NULL, use_symmetry = use_symmetry)
+crossDist(X, Y, M = NULL, use_symmetry = FALSE)
 }
 \arguments{
-\item{X}{a matrix or vector}
+\item{X}{a matrix or vector.}
 
-\item{Y}{a matrix or vector with same number of columns as X}
+\item{Y}{a matrix or vector with the same number of columns as `X`.}
 
-\item{M}{a positive semidefinite matrix (nrow(M) = ncol(M) = ncol(X))}
+\item{M}{optional positive semidefinite matrix (`nrow(M) = ncol(M) =
+ncol(X)`) defining an anisotropic metric. `NULL` (default) for plain
+isotropic Euclidean distance.}
+
+\item{use_symmetry}{logical; if `TRUE`, only the upper triangle is
+computed and mirrored (faster, and exact only when `X` and `Y`
+represent the same set of points). Default `FALSE`.}
+}
+\value{
+a numeric matrix of dimension `nrow(X) x nrow(Y)`.
 }
 \description{
-Compute the distance between every rows of two matrix. The returned distance
-has for dimension: nrow(X) x ncol(Y).
-If M is the identity matrix (by default), the distance is isotropic, if not
-the distance is anisotropic.
+Compute the pairwise (Euclidean, or Mahalanobis if `M` is supplied)
+distance between every row of `X` and every row of `Y`.
+The returned distance matrix has dimension `nrow(X) x nrow(Y)`.
+If `M` is `NULL` (the default), the distance is isotropic Euclidean;
+otherwise the distance is anisotropic (Mahalanobis-type, using `M` as
+the metric).
+}
+\examples{
+crossDist(c(-1, 0, 1), c(-1, 0, 1), use_symmetry = TRUE)
 }

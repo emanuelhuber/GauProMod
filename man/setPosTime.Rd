@@ -2,10 +2,71 @@
 % Please edit documentation in R/main.R
 \name{setPosTime}
 \alias{setPosTime}
-\title{Reshape target}
+\title{Reshape space-time observations and targets for gpCond()}
 \usage{
 setPosTime(xy, tt, val, xystar)
 }
+\arguments{
+\item{xy}{matrix of spatial observation locations, one row per
+location (\code{nxy} rows).}
+
+\item{tt}{numeric vector of the \code{nt} observation times (may be
+irregularly spaced; \code{NA}s are dropped when computing gaps).}
+
+\item{val}{observed values, length \code{nxy * nt}, ordered as all
+\code{nt} times for the first location in \code{xy}, then all
+\code{nt} times for the second location, and so on (i.e.
+\code{val <- as.vector(t(observation_matrix))} for an
+\code{nxy x nt} matrix of observations).}
+
+\item{xystar}{matrix of target spatial locations to predict at (same
+number of columns as \code{xy}), predicted at the same \code{nt}
+time points as the observations.}
+}
+\value{
+a list with elements \code{obs} and \code{xstar}, each a list
+Reshape space-time observations and targets for gpCond()
+
+Helper to build the \code{obs}/\code{targ} lists that
+\code{\link{gpCond}()} expects for a space-time model
+(\code{length(covModels) == 2}), from a "wide" input where every
+spatial location in \code{xy} was observed at every time in \code{tt}.
+
+IMPORTANT: for a space-time model, \code{gpCond()} expects \code{x}
+and \code{t} to each list only the \emph{unique} spatial locations /
+time points (\code{nxy} rows / \code{nt} values respectively) -- it
+builds the full space-time covariance internally as a Kronecker
+product of the purely-spatial and purely-temporal covariances, rather
+than expecting a pre-expanded one-row-per-(location,time) input.
+Only \code{y} (the observed values) needs the full \code{nxy * nt}
+length. Passing pre-expanded locations/times (as an earlier version
+of this function did) causes \code{gpCond()} to expand them a second
+time internally, silently producing wrong (oversized) covariance
+matrices -- this can be a numerically severe bug: an all-C++ Cholesky/
+Kronecker computation on a wrongly-shaped matrix can even crash R
+(segfault) rather than raising a clean R-level error.
+
+a list with elements \code{obs} (with \code{x}: the
+  \code{nxy} unique locations, \code{t}: the \code{nt} unique times,
+  and \code{y}: the \code{nxy * nt} observed values) and \code{xstar}
+  (with \code{x}: the unique target locations and \code{t}: the same
+  \code{nt} time points) -- pass these directly as \code{gpCond()}'s
+  \code{obs} argument and as \code{targ = list(x = xstar$x, t = xstar$t)}.
+}
 \description{
-Reshape target
+Helper to build the \code{obs}/\code{targ} lists that
+\code{\link{gpCond}()} expects for a space-time model
+(\code{length(covModels) == 2}), from a "wide" input where every
+spatial location in \code{xy} was observed at every time in \code{tt}.
+}
+\examples{
+xy <- matrix(c(0, 0, 1, 1), ncol = 2, byrow = TRUE)  # 2 locations
+tt <- c(1, 2, 5)                                     # 3 times
+val <- c(1, 2, 1.5, 3, 4, 3.5)                        # 2 * 3 = 6 values
+xystar <- matrix(c(0.5, 0.5), ncol = 2)               # 1 target location
+rt <- setPosTime(xy, tt, val, xystar)
+covModels <- list(list(kernel = "gaussian", l = 1, h = 1),
+                   list(kernel = "gaussian", l = 2, h = 1))
+A <- gpCond(rt$obs, list(x = rt$xstar$x, t = rt$xstar$t), covModels,
+            sigma = 0.1, sigmat = 0.1)
 }

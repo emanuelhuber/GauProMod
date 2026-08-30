@@ -2,10 +2,19 @@
 % Please edit documentation in R/main.R
 \name{cholfac}
 \alias{cholfac}
-\title{Return the lower Cholesky factor}
+\title{Lower Cholesky factor}
 \usage{
 cholfac(x)
 }
+\arguments{
+\item{x}{a symmetric positive-definite matrix.}
+}
+\value{
+the lower Cholesky factor \code{L} (\code{L \%*\% t(L) = x}).
+}
 \description{
-Return the lower Cholesky factor L such that X = L t(L)
+Compute the lower Cholesky factor \code{L} of a symmetric
+positive-definite matrix \code{x}, such that \code{x = L \%*\% t(L)}.
+(Note: this is the transpose of base R's \code{\link[base]{chol}()},
+which returns the upper factor \code{U} with \code{x = t(U) \%*\% U}.)
 }

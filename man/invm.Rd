@@ -2,10 +2,20 @@
 % Please edit documentation in R/main.R
 \name{invm}
 \alias{invm}
-\title{Inverse matrix}
+\title{Inverse of a symmetric positive-definite matrix}
 \usage{
 invm(x)
 }
+\arguments{
+\item{x}{a symmetric positive-definite matrix.}
+}
+\value{
+the inverse of \code{x}.
+}
 \description{
-This function first try the Cholesky decomposition
+Inverts \code{x} via its Cholesky factorization
+(\code{\link{cholfac}()}, faster and more numerically stable than a
+general-purpose inverse for a symmetric positive-definite matrix),
+falling back to a direct matrix inversion if the Cholesky
+factorization fails (e.g. \code{x} is not positive definite).
 }

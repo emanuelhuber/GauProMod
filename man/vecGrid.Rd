@@ -2,10 +2,26 @@
 % Please edit documentation in R/main.R
 \name{vecGrid}
 \alias{vecGrid}
-\title{Create vecgrid}
+\title{Create a 2D coordinate grid as a two-column matrix}
 \usage{
 vecGrid(x, y)
 }
+\arguments{
+\item{x}{numeric vector of x-coordinates.}
+
+\item{y}{numeric vector of y-coordinates.}
+}
+\value{
+a \code{(length(x)*length(y)) x 2} matrix, one row per grid
+  point, with columns \code{x} and \code{y}.
+}
 \description{
-Create vecgrid
+Like \code{\link{matGrid}()}, but returns the grid of every
+combination of \code{x} and \code{y} flattened into a single
+two-column matrix -- the format expected as \code{x}/\code{obs$x}/
+\code{targ$x} by \code{\link{covm}()}/\code{\link{gpCond}()} for 2D
+problems.
+}
+\examples{
+vecGrid(1:3, 1:2)
 }

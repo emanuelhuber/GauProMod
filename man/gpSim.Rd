@@ -6,6 +6,30 @@
 \usage{
 gpSim(A, L = NULL, n = 1)
 }
+\arguments{
+\item{A}{a list with elements \code{mean} (length \code{p}),
+\code{cov} (\code{p x p} covariance matrix) and \code{xstar}
+(target locations) -- typically the output of \code{\link{gpCond}()}
+called with \code{onlyMean = FALSE}.}
+
+\item{L}{optional pre-computed lower Cholesky factor of \code{A$cov}
+(\code{L \%*\% t(L) = A$cov}, as returned by \code{\link{cholfac}()}).
+If supplied, this is used directly instead of resampling it from
+\code{A$cov} via \code{\link{mvrnorm2}()} -- useful when drawing
+from the same covariance repeatedly, to avoid recomputing the
+factorization each time.}
+
+\item{n}{number of realizations to draw (default 1).}
+}
+\value{
+a matrix with \code{n + 1} columns: the first column is
+  \code{A$xstar} (the locations), followed by \code{n} columns of
+  simulated values at those locations (one realization per column).
+}
 \description{
-Simulate a Gaussian Process
+Draw random realizations from a (conditional) Gaussian Process, given
+its mean and covariance as computed by \code{\link{gpCond}()}.
+}
+\seealso{
+[gpCond()], [mvrnorm2()]
 }

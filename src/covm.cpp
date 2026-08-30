@@ -529,6 +529,7 @@ Eigen::MatrixXd kernel_matrix_threaded_general(
 //' @param kernel Kernel type: "gaussian", "matern", "cauchy", "linear", "polynomial", "spherical".
 //' @param use_symmetry Logical, if TRUE enforces symmetry (only valid for square X/Y).
 //' @return Kernel matrix (n x m) or derivatives as matrix.
+// [[Rcpp::export]]
 Eigen::MatrixXd kernel_matrix_rcpp(
    const Eigen::MatrixXd  &X,
    const Eigen::MatrixXd  &Y,
@@ -542,27 +543,23 @@ Eigen::MatrixXd kernel_matrix_rcpp(
    const std::string &kernel, 
    bool use_symmetry) {
  
- // if(X.rows() != W.rows() || X.cols() != W.cols())
- //   Rcpp::stop("Weight matrix W must match output dimensions.");
- // 
- // if(use_symmetry && (X.rows() != Y.rows()))
- //   Rcpp::stop("use_symmetry requires X and Y to have same number of rows.");
-  
-  // Convert kernel string to enum for faster dispatch
+ // Convert kernel string to enum for faster dispatch
   KernelType ktype = kernel_string_to_enum(kernel);
-  
-  // Gram/feature kernels (linear, polynomial): output is (X.rows() x Y.rows()).
-  // Distance-based kernels: X already IS the output-shaped matrix.
-  int expected_rows = X.rows();
-  int expected_cols = (ktype == KernelType::LINEAR || ktype == KernelType::POLYNOMIAL)
-    ? Y.rows() : X.cols();
-  
-  if(W.rows() != expected_rows || W.cols() != expected_cols)
-    Rcpp::stop("Weight matrix W must match output dimensions.");
-  
-  if(use_symmetry && (X.rows() != Y.rows()))
-    Rcpp::stop("use_symmetry requires X and Y to have same number of rows.");  
 
+ // For the Gram/feature kernels (linear, polynomial), X and Y are
+ // n x p / m x p feature matrices, so the output (and hence W) has
+ // shape (X.rows() x Y.rows()) -- NOT (X.rows() x X.cols()).
+ // For the distance-based kernels, X is already the n x m distance
+ // matrix, so the output shape is (X.rows() x X.cols()).
+ int expected_rows = X.rows();
+ int expected_cols = (ktype == KernelType::LINEAR || ktype == KernelType::POLYNOMIAL)
+                        ? Y.rows() : X.cols();
+
+ if(W.rows() != expected_rows || W.cols() != expected_cols)
+   Rcpp::stop("Weight matrix W must match output dimensions.");
+ 
+ if(use_symmetry && (X.rows() != Y.rows()))
+   Rcpp::stop("use_symmetry requires X and Y to have same number of rows.");
   switch(ktype) {
       case KernelType::GAUSSIAN: return kGaussian_rcpp_fast(X, l, h, d, W, use_symmetry);
       case KernelType::CAUCHY: return kCauchy_rcpp_fast(X, l, h, v, d, W, use_symmetry);

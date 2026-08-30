@@ -24,18 +24,23 @@
 #'
 #'   **Optional fields:**
 #'   - `v`: smoothness exponent (for `"power_exp"` or `"matern"`).  
-#'   - `b`: bias for the `"linear"` kernel.  
 #'   - `scale`: numeric vector of length `ncol(x)` for per-dimension scaling.  
 #'   - `rot`: rotation angle in radians (2D only).  
 #'
 #' @param d Integer derivative order:  
 #'   - `0`: covariance (default)  
-#'   - `1`: first radial derivative ∂K/∂r  
-#'   - `2`: second radial derivative ∂²K/∂r²  
+#'   - `1`: first derivative with respect to `x`, ∂K/∂x  
+#'   - `2`: the negative of the second radial derivative, -∂²K/∂r²  
+#'         (this is what is needed for the diagonal/self-covariance of a
+#'         derivative-observation process, e.g. via `bc` in
+#'         [gpCond()]; it does not depend on `w`/`dx`, unlike `d = 1`)
 #'   
-#'   When `d > 0`, the function multiplies the radial derivative by a
-#'   weight matrix `w` so that the result corresponds to  
-#'   ∂K/∂y = (dK/dr) × (dr/dy).
+#'   For `d = 1`, the result is `w * (dK/dr) * (dr/dx)` for a weight
+#'   matrix `w` built internally from `x`, `y` (and, for 2D+, `dx`) --
+#'   see the `dx` argument below. Support for `d`/derivatives varies by
+#'   kernel: not all kernels implement `d = 1`/`d = 2` (e.g. `"linear"`/
+#'   `"polynomial"` only support `d = 0`), and `sparse = TRUE` only
+#'   supports `d = 0`.
 #'
 #' @param dx For directional derivatives (2D only), either a length-2 numeric
 #'   unit vector or an `nrow(x) × 2` matrix of unit direction vectors.  
@@ -44,7 +49,11 @@
 #'   weight automatically.
 #'
 #' @param sparse Logical; if `TRUE`, return a sparse matrix (`Matrix::dgCMatrix`)
-#'   using a distance cutoff. Default is `FALSE`.
+#'   using a distance cutoff. Only supported for distance-based kernels
+#'   (`"gaussian"`, `"matern"` and its `"matern_3_2"`/`"matern_5_2"`/
+#'   `"exponential"` aliases, `"cauchy"`, `"triangular"`, `"spherical"`)
+#'   and `d = 0`; not supported for `"linear"`/`"polynomial"` or for
+#'   derivatives (`d = 1` or `d = 2`). Default is `FALSE`.
 #'
 #' @param cutoff Numeric; distance threshold used when `sparse = TRUE`.  
 #'   Entries corresponding to distances greater than `cutoff` are set to zero.  
@@ -60,17 +69,18 @@
 #'   `"matern_5_2"`, `"power_exp"`), it computes  
 #'   *r* = ‖*x₁* − *y₁*‖ (possibly anisotropic) and passes the distance matrix to C++.
 #'
-#' - For the `"linear"` kernel, the dot-product matrix `x %*% t(y)` is used instead of distances.
+#' - For the `"linear"`/`"polynomial"` (Gram/feature) kernels, the
+#'   dot-product matrix `x %*% t(y)` is used instead of distances.
 #'
-#' Derivative orders `d = 1` or `d = 2` compute radial derivatives multiplied by
-#' geometric weights `w` so that the output corresponds to directional partial
-#' derivatives with respect to `y`.
+#' Derivative orders `d = 1` or `d = 2` compute derivatives multiplied by
+#' geometric weights `w` (for `d = 1`) so that the output corresponds to
+#' directional partial derivatives with respect to `x` -- see the `d`
+#' argument above for the exact convention.
 #'
 #' Parameter ordering in the backend:  
 #' `params = c(l, h, ...)`, with additional entries if needed:
 #'
 #' - For `"power_exp"`: append `v`.  
-#' - For `"linear"`: append `b` (default 0 if missing).
 #'
 #' @return
 #' - A dense numeric matrix (`matrix`) when `sparse = FALSE`.  
@@ -80,8 +90,8 @@
 #'
 #' @seealso
 #' - [crossDist()] for distance computation  
-#' - [covfx()] for covariance as a function of distance  
-#' - The underlying C++ wrapper `.covm_rcpp_wrapper`
+#' - [gpCond()], which uses `covm()` internally to build the observation,
+#'   cross-, and target covariance matrices  
 #'
 #' @examples
 #' # --- 1D Gaussian covariance
@@ -96,7 +106,7 @@
 #' K2 <- covm(as.matrix(pts), as.matrix(pts), covModel2)
 #'
 #' # --- Linear kernel (dot product)
-#' covLin <- list(kernel = "linear", l = 1, h = 1.5, b = 0.1)
+#' covLin <- list(kernel = "linear", h = 1.5, c = 0.1)
 #' Klin <- covm(pts, pts, covLin)
 #'
 #' # --- First derivative in 1D
@@ -106,12 +116,21 @@
 #' Ksparse <- covm(x, x, covModel2, sparse = TRUE, cutoff = 0.3)
 #'
 #' @export
-covm <- function(x, y, covModel, d = 0, dx = 1, use_symmetry = FALSE, ...){
+covm <- function(x, y, covModel, d = 0, dx = 1, use_symmetry = FALSE,
+                  sparse = FALSE, cutoff = 0, ...){
   #   outer(x,y, covModel$kernel,covModel)
   if(length(covModel$type) == 1 && length(covModel$kernel) == 0){
     covModel[["kernel"]] <- covModel$type
     warning("In covModel, rename 'type' into 'kernel'.\n")
   }
+  covModel <- .resolveKernelAlias(covModel)
+
+  # Coerce matrix-like inputs (e.g. a data.frame from expand.grid()) to
+  # real numeric matrices, so downstream matrix algebra (e.g. x %*% L
+  # for scaling/rotation) doesn't fail on non-matrix input. Plain
+  # vectors (dim(x) == NULL) are left untouched.
+  if(!is.null(dim(x))) x <- as.matrix(x)
+  if(!is.null(dim(y))) y <- as.matrix(y)
 
   if(is.null(dim(x))){
     #XY <- outer(x, y, function(x, y){ sqrt((x - y)^2)})
@@ -157,7 +176,40 @@ covm <- function(x, y, covModel, d = 0, dx = 1, use_symmetry = FALSE, ...){
       }
     }
   }
-  if(covModel$kernel == "linear"){
+
+  # ---- Sparse path: distance-based kernels only, d = 0 only ----
+  if(isTRUE(sparse)){
+    if(covModel$kernel %in% c("linear", "polynomial")){
+      stop("'sparse = TRUE' is only supported for distance-based kernels ",
+           "(e.g. \"gaussian\", \"matern\", \"cauchy\", \"triangular\", ",
+           "\"spherical\"), not for the feature/Gram kernels ",
+           "\"linear\"/\"polynomial\".")
+    }
+    if(d != 0){
+      stop("'sparse = TRUE' is currently only supported for d = 0 ",
+           "(the covariance itself, not its derivatives).")
+    }
+    if(!requireNamespace("Matrix", quietly = TRUE)){
+      stop("'sparse = TRUE' requires the 'Matrix' package.")
+    }
+    x_mat <- if(is.null(dim(x))) matrix(x, ncol = 1) else as.matrix(x)
+    y_mat <- if(is.null(dim(y))) matrix(y, ncol = 1) else as.matrix(y)
+    rmax  <- if(is.null(cutoff) || cutoff <= 0) Inf else cutoff
+    Xsp   <- crossDist_sparse(x_mat, y_mat, rmax = rmax, M = M)
+    Wsp   <- Xsp
+    Wsp@x[] <- 1   # all-ones weights, same sparsity pattern as Xsp
+
+    l <- if(!is.null(covModel$l)) covModel$l else 1
+    h <- if(!is.null(covModel$h)) covModel$h else 1
+    v <- if(!is.null(covModel$v)) covModel$v else 0
+    KK <- kernel_dispatch_auto_rcpp(Xsp, Xsp, l, h, v, 0, 0, d, Wsp,
+                                     covModel$kernel, use_symmetry)
+    return(KK)
+  }
+
+  # Gram/feature kernels: operate on the raw feature vectors X, Y
+  # directly (inner products), not on pairwise Euclidean distances.
+  if(covModel$kernel %in% c("linear", "polynomial")){
     if(!is.null(dim(x)) && dim(x)[2] > 1 && !is.null(M)){
       L <- cholfac(M)
       x <- x %*% (L)
@@ -309,44 +361,21 @@ sign2 <- function(x){
                 substr(kname,2,nchar(kname)) ))
 }
 
-# Generic R wrapper for all kernels
-kernel_wrapper <- function(X, Y, para, d = 0, w = 1, kernel_type, use_symmetry = FALSE){
-  # Extract common parameters, defaulting to 0 if missing
-  l      <- if(!is.null(para$l)) para$l else 0
-  h      <- if(!is.null(para$h)) para$h else 0
-  v      <- if(!is.null(para$v)) para$v else 0
-  degree <- if(!is.null(para$degree)) para$degree else 0
-  cc      <- if(!is.null(para$c)) para$c else 0
-  
-  # Expand scalar w to full weight matrix
-  # W_mat <- if(is.matrix(w)) w else matrix(w, nrow=nrow(X), ncol=nrow(Y))
-  W_mat <- make_W(X, Y, w)
-  
-  # Shift X and Y if needed (for linear or polynomial)
-  if(kernel_type %in% c("kLinear", "kPolynomial")){
-    X <- X - cc
-    Y <- Y - cc
+# Documented kernel-name aliases (see covm()'s @param covModel) that
+# resolve to an existing kernel implementation with a fixed smoothness
+# 'v' rather than being separate functions in their own right.
+# Previously "matern_3_2", "matern_5_2" and "exponential" were advertised
+# in covm()'s documentation but .kernelName() would map them to
+# nonexistent functions (e.g. "matern_3_2" -> "kMatern_3_2").
+.resolveKernelAlias <- function(covModel){
+  alias_v <- list(exponential = 0.5, matern_1_2 = 0.5,
+                   matern_3_2  = 1.5, matern_5_2  = 2.5)
+  k <- covModel$kernel
+  if(!is.null(k) && k %in% names(alias_v)){
+    covModel$kernel <- "matern"
+    covModel$v <- alias_v[[k]]
   }
-  
-  # Call the corresponding Rcpp kernel function
-  K <- switch(kernel_type,
-              kGaussian   = kGaussian_rcpp(
-                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
-              kLinear     = kLinear_rcpp(
-                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
-              kPolynomial = kPolynomial_rcpp(
-                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
-              kMatern     = kMatern_rcpp(
-                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
-              kCauchy     = kCauchy_rcpp(
-                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
-              kTriangular = kTriangular_rcpp(
-                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
-              kSpherical  = kSpherical_rcpp(
-                X, Y, l, h, v, degree, cc, d, W_mat, use_symmetry),
-              stop("Unknown kernel type"))
-  
-  return(K)
+  return(covModel)
 }
 
 # General helper to ensure W is a matrix of correct dimensions
@@ -379,6 +408,32 @@ kGaussian <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
   c <- 0
   W_mat <- make_W(r, w)
   K <- kernel_dispatch_auto_rcpp(r, r, l, h, v, degree, c, d, W_mat, "gaussian", use_symmetry)
+  return(K)
+}
+
+# @details The `"power_exp"` kernel: \eqn{K(r) = h^2 \exp(-(r/l)^v)},
+#   \eqn{0 < v \le 2}. Requires `covModel$l`, `covModel$h` and
+#   `covModel$v`. Note this is the standard power-exponential
+#   parameterization (no factor of 0.5 in the exponent), so `v = 2` is
+#   qualitatively similar to, but not numerically identical to, the
+#   `"gaussian"` kernel with the same `l`. Derivatives (`d = 1`, `d = 2`)
+#   are supported, but for `v < 1` the first derivative and for any
+#   `v` other than `1` or `2` the second derivative are not
+#   mathematically finite exactly at distance 0 (a genuine property of
+#   this kernel family, not a bug) -- see `kPowerExp()`/`kPowerExp_rcpp_fast`
+#   for details. `sparse = TRUE` is not currently supported for this
+#   kernel.
+kPower_exp <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
+  l <- para$l
+  h <- para$h
+  v <- para$v
+  if(is.null(v)){
+    stop("covModel$v is required for the \"power_exp\" kernel (0 < v <= 2).")
+  }
+  degree <- 0
+  c <- 0
+  W_mat <- make_W(r, w)
+  K <- kernel_dispatch_auto_rcpp(r, r, l, h, v, degree, c, d, W_mat, "power_exp", use_symmetry)
   return(K)
 }
 
@@ -428,7 +483,6 @@ kSpherical <- function(r, para, d = 0, w = 1, use_symmetry = FALSE){
 
 # ---------------- Feature/Gram kernels ----------------
 kLinear <- function(X, Y, para, d = 0, w = 1, use_symmetry = FALSE){
-  b <- para$b    # scale factor
   h <- para$h
   # c <- para$c    # bias
   v <- 0
@@ -437,36 +491,53 @@ kLinear <- function(X, Y, para, d = 0, w = 1, use_symmetry = FALSE){
   if(is.null(dim(Y))) dim(Y) <- c(length(Y), 1)
   W_mat <- make_W(X, w, Y)
   # Subtract bias from features if desired
+  # (the 'l' slot of kernel_dispatch_auto_rcpp is unused for the linear
+  # kernel, so we pass 0 as a placeholder)
   K <- kernel_dispatch_auto_rcpp(X - para$c, Y - para$c, 
-                                 b, h, v, degree, para$c, d, W_mat, 
+                                 0, h, v, degree, para$c, d, W_mat, 
                                  "linear", use_symmetry)
   return(K)
 }
 
-kPolynomial <- function(X, para, d = 0, w = 1, use_symmetry = FALSE){
+kPolynomial <- function(X, Y, para, d = 0, w = 1, use_symmetry = FALSE){
   degree <- para$degree
   h <- para$h
-  c <- para$c
-  l <- 1    # length scale unused for polynomial
-  v <- 0
-  W_mat <- make_W(X,  w)
-  K <- kernel_dispatch_auto_rcpp(X - c, Y - c, l, h, v, degree, c, d, W_mat, "polynomial", use_symmetry)
+  if(is.null(dim(X))) dim(X) <- c(length(X), 1)
+  if(is.null(dim(Y))) dim(Y) <- c(length(Y), 1)
+  W_mat <- make_W(X, w, Y)
+  # NOTE: unlike kLinear, X/Y are NOT shifted by para$c here: the C++
+  # polynomial kernel is h^2 * (X %*% t(Y) + c)^degree, i.e. c enters
+  # additively *inside* the dot product, not as a shift of the features.
+  # ('l'/'v' slots of kernel_dispatch_auto_rcpp are unused for polynomial,
+  # so 0 is passed as a placeholder for each)
+  K <- kernel_dispatch_auto_rcpp(X, Y, 0, h, 0, degree, para$c, d, W_mat,
+                                 "polynomial", use_symmetry)
   return(K)
 }
 
 
-#' Cross-distance between two matrix
-#' 
-#' Compute the distance between every rows of two matrix. The returned distance
-#' has for dimension: nrow(X) x ncol(Y).
-#' If M is the identity matrix (by default), the distance is isotropic, if not
-#' the distance is anisotropic.
-#' @param X a matrix or vector
-#' @param Y a matrix or vector with same number of columns as X
-#' @param M a positive semidefinite matrix (nrow(M) = ncol(M) = ncol(X))
+#' Cross-distance between two matrices
+#'
+#' Compute the pairwise (Euclidean, or Mahalanobis if `M` is supplied)
+#' distance between every row of `X` and every row of `Y`.
+#' The returned distance matrix has dimension `nrow(X) x nrow(Y)`.
+#' If `M` is `NULL` (the default), the distance is isotropic Euclidean;
+#' otherwise the distance is anisotropic (Mahalanobis-type, using `M` as
+#' the metric).
+#' @param X a matrix or vector.
+#' @param Y a matrix or vector with the same number of columns as `X`.
+#' @param M optional positive semidefinite matrix (`nrow(M) = ncol(M) =
+#'   ncol(X)`) defining an anisotropic metric. `NULL` (default) for plain
+#'   isotropic Euclidean distance.
+#' @param use_symmetry logical; if `TRUE`, only the upper triangle is
+#'   computed and mirrored (faster, and exact only when `X` and `Y`
+#'   represent the same set of points). Default `FALSE`.
+#' @return a numeric matrix of dimension `nrow(X) x nrow(Y)`.
+#' @examples
+#' crossDist(c(-1, 0, 1), c(-1, 0, 1), use_symmetry = TRUE)
 #' @name crossDist
 #' @export
-crossDist <- function(X, Y, M = NULL, use_symmetry = use_symmetry){
+crossDist <- function(X, Y, M = NULL, use_symmetry = FALSE){
   # Ensure X and Y are matrices for RcppEigen
   # X_mat <- as.matrix(X)
   # Y_mat <- as.matrix(Y)

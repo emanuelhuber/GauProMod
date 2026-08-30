@@ -6,6 +6,22 @@
 \usage{
 mvrnorm2(n, mu, Sigma)
 }
+\arguments{
+\item{n}{number of samples to draw.}
+
+\item{mu}{mean vector, length \code{p}.}
+
+\item{Sigma}{covariance matrix, \code{p x p}.}
+}
+\value{
+a \code{p x n} matrix: one length-\code{p} sample per column.
+  (Note: this is the transpose of \code{MASS::mvrnorm()}'s
+  convention, which returns \code{n x p} with one sample per row.)
+}
 \description{
-A more robute alternative to the \code{mvrnorm} function.
+A more robust alternative to \code{MASS::mvrnorm()}: attempts a
+Cholesky factorization of \code{Sigma} directly, and falls back to
+\code{\link{correctCovMat}} (nearest-PD repair) if \code{Sigma} isn't
+exactly positive definite (as can happen with covariance matrices
+built from numerically near-singular kernels).
 }

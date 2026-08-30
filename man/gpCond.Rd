@@ -15,6 +15,89 @@ gpCond(
   onlyMean = FALSE
 )
 }
+\arguments{
+\item{obs}{list of observations. For a spatial-only GP
+(\code{length(covModels) == 1}): \code{x} (locations -- a numeric
+vector for 1D, or a matrix with one row per location for 2D/3D) and
+\code{y} (observed values, same length/number of rows as \code{x}).
+For a space-time GP (\code{length(covModels) == 2}): \code{x} lists
+only the \code{nxy} \emph{unique} spatial locations and \code{t}
+only the \code{nt} \emph{unique} times (the full space-time
+covariance is built internally as a Kronecker product of the
+spatial and temporal covariances, not from a pre-expanded
+one-row-per-(location,time) input); \code{y} then has the full
+\code{nxy * nt} observed values, ordered as all \code{nt} times for
+the first location, then all \code{nt} times for the second
+location, and so on. See \code{\link{setPosTime}()} for a helper
+that builds this space-time layout from "every location observed
+at every time" data.}
+
+\item{targ}{list of target locations to predict at, in the same
+convention as \code{obs}: \code{x} (unique locations), and, for a
+space-time model, optionally \code{t} (unique target times,
+defaults to \code{obs$t}, i.e. predict at the same times as
+observed).}
+
+\item{covModels}{a list of one covariance model (spatial-only GP) or
+two covariance models (space-time GP: \code{covModels[[1]]} for
+space, \code{covModels[[2]]} for time; the full covariance is their
+Kronecker product). Each covariance model is a list as documented
+in \code{\link{covm}()}'s \code{covModel} argument.}
+
+\item{sigma}{observation noise standard deviation: either a single
+value (applied to every observation) or a vector matching
+\code{length(obs$y)}.}
+
+\item{op}{order of an optional polynomial mean function fitted
+alongside the GP (rather than assuming a zero mean): \code{0}
+(default) for no mean function; for 1D \code{obs$x}, \code{1}/
+\code{2}/\code{3} for a linear/quadratic/cubic polynomial; for 2D
+\code{obs$x}, \code{2} for a linear (\eqn{1, x_1, x_2}) or \code{5}
+for a quadratic (\eqn{1, x_1, x_2, x_1^2, x_2^2, x_1 x_2}) surface.}
+
+\item{bc}{optional derivative/boundary constraints: a list with
+\code{x} (locations of the constraints), \code{v} (unit direction
+vector(s) the derivative is taken along, for 2D+ locations),
+\code{y} (the constrained derivative values, e.g. \code{0} for a
+zero-gradient/no-flux boundary), and \code{sigma} (noise on the
+constraint). Adds these as extra "observations" of the GP's
+derivative, jointly conditioned on with \code{obs}.}
+
+\item{sigmat}{for a space-time model (\code{length(covModels) == 2}
+only), an additional noise standard deviation applied along the
+time dimension (added to the diagonal of the temporal noise term).}
+
+\item{onlyMean}{if \code{TRUE}, skip computing the posterior
+covariance and log marginal likelihood and return only the
+posterior mean (faster; useful when only point predictions are
+needed, e.g. inside a loop). Default \code{FALSE}.}
+}
+\value{
+a list with:
+  \item{mean}{posterior mean at \code{targ} (length
+    \code{nrow(targ$x)}, or \code{nrow(targ$x) * length(targ$t)} for
+    a space-time model).}
+  \item{cov}{posterior covariance matrix at \code{targ} (omitted if
+    \code{onlyMean = TRUE}).}
+  \item{logLik}{log marginal likelihood of \code{obs} under
+    \code{covModels} (omitted if \code{onlyMean = TRUE}; see
+    \code{\link{gpLogLik}()} for a version that computes this alone,
+    without the cost of also predicting at \code{targ} -- the right
+    choice when fitting hyperparameters, e.g. with
+    \code{\link{gpFit}()}).}
+  \item{xstar}{the target locations predictions correspond to, in
+    the same order as \code{mean}/\code{cov} (for a space-time model,
+    \code{targ$x} repeated for each time, column-bound with the
+    matching \code{targ$t}).}
+}
 \description{
-Conditional Gaussian Process simulation
+Compute the posterior (conditional) mean and covariance of a Gaussian
+Process at target locations \code{targ}, given noisy observations
+\code{obs}, one or two covariance models \code{covModels} (spatial
+only, or spatial x temporal via a Kronecker product), an optional
+polynomial mean function, and optional derivative/boundary
+constraints.
+}
+\seealso{
+[covm()], [gpLogLik()], [gpFit()], [gpSim()], [setPosTime()]
 }

@@ -2,10 +2,27 @@
 % Please edit documentation in R/main.R
 \name{matGrid}
 \alias{matGrid}
-\title{Create grid}
+\title{Create a 2D coordinate grid}
 \usage{
 matGrid(x, y)
 }
+\arguments{
+\item{x}{numeric vector of x-coordinates (columns of the grid).}
+
+\item{y}{numeric vector of y-coordinates (rows of the grid).}
+}
+\value{
+a list with elements \code{X} and \code{Y}, each an
+  \code{length(y) x length(x)} matrix: \code{X[i,j] = x[j]} and
+  \code{Y[i,j] = y[i]}.
+}
 \description{
-Create grid
+Build the two coordinate matrices (\code{X}, \code{Y}) of the
+rectangular grid formed by every combination of \code{x} and
+\code{y}, analogous to \code{base::expand.grid()} but returning
+matrices instead of a data frame (useful e.g. for \code{image()}/
+\code{contour()}-style plotting).
+}
+\examples{
+matGrid(1:3, 1:2)
 }
