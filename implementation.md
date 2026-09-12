@@ -503,7 +503,7 @@ Then (k(r)=\sigma^2 C,(a r)^{\nu}K_{\nu}(a r)=\sigma^2 C a^{\nu} r^{\nu}K_{\nu}(
 
 Using the Bessel identity (\dfrac{d}{dx}[x^\nu K_\nu(x)]=-x^\nu K_{\nu-1}(x)) (and chain rule),
 $$
-\boxed{%
+\boxed{
 k'(r) ;=; -,\sigma^2, C, a^{\nu+1}, r^{\nu}, K_{\nu-1}(a r)
 }
 \qquad (r>0).
@@ -515,7 +515,7 @@ $$
 
 Differentiating (k'(r)) and simplifying with standard Bessel recurrences gives the compact form
 $$
-\boxed{%
+\boxed{
 k''(r) ;=; \sigma^2, C, a^{\nu+1}, r^{\nu-1}!\big[,a r,K_{\nu}(a r);-;K_{\nu-1}(a r),\big]
 }
 \qquad (r>0).
