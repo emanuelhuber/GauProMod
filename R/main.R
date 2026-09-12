@@ -105,8 +105,8 @@ NULL
 #' @name gpCond
 #' @export
 gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
-                    sigmat = 0, onlyMean = FALSE){
-
+                   sigmat = 0, onlyMean = FALSE){
+  
   Kxx       <- covm( obs$x,  obs$x, covModels[[1]], use_symmetry = TRUE)
   Kstar     <- covm( obs$x, targ$x, covModels[[1]])
   Kstarstar <- covm(targ$x, targ$x, covModels[[1]], use_symmetry = TRUE)
@@ -116,7 +116,7 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
     stop("length of sigma must be equal to 1 or to the number of observations")
   }
   y <- obs$y
-
+  
   # if there are derivative
   if(!is.null(bc)){
     # if length(dim (obs$x)) == 1 or   length(dim (obs$y)) == 1
@@ -143,7 +143,7 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
     xstar <- targ$x[rep(seq_len(nrow(targ$x)),each=nt),]
     nxy <- nrow(obs$x)
     x <- obs$x[rep(seq_len(nxy), each=nt),]
-#     y <- obs$y
+    #     y <- obs$y
     AA <- cbind(xstar,targ$t)
     Ktt <- covm(obs$t, obs$t, covModels[[2]], use_symmetry = TRUE)
     Knoise <- diag(sigma^2)
@@ -153,10 +153,11 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
     #                   Kxx[1,1]*Knoise[2,1] Kxx[1,1]*Knoise[2,2] ...
     #                   ...
     Kstarstar <- Kstarstar %x%
-                 covm(targ$t, targ$t, covModels[[2]], use_symmetry = TRUE)
+      covm(targ$t, targ$t, covModels[[2]], use_symmetry = TRUE)
     Kstar <- Kstar %x% covm(obs$t, targ$t, covModels[[2]])
     if(!is.null(bc)){
-      y <- c(obs$y, rep(bc$y, nt))
+      # see the matching fix/comment in gpLogLik(): each = nt, not nt
+      y <- c(obs$y, rep(bc$y, each = nt))
     }
   }else{
     Kxx <-  Kxx  +  diag(sigma^2)
@@ -223,7 +224,7 @@ gpCond <- function(obs, targ, covModels, sigma=0, op = 0 , bc = NULL,
 #' @name gpLogLik
 #' @export
 gpLogLik <- function(obs, covModels, sigma = 0, op = 0, bc = NULL, sigmat = 0){
-
+  
   Kxx <- covm(obs$x, obs$x, covModels[[1]], use_symmetry = TRUE)
   if(length(sigma) == 1){
     sigma <- rep(sigma, ncol(Kxx))
@@ -232,7 +233,7 @@ gpLogLik <- function(obs, covModels, sigma = 0, op = 0, bc = NULL, sigmat = 0){
   }
   y <- obs$y
   x <- obs$x
-
+  
   # if there are derivative/boundary constraints
   if(!is.null(bc)){
     Kdxx  <- covm(obs$x, bc$x, covModels[[1]], d = 1, dx = bc$v)
@@ -242,7 +243,7 @@ gpLogLik <- function(obs, covModels, sigma = 0, op = 0, bc = NULL, sigmat = 0){
                   cbind(t(-Kdxx), Kdxdx))
     y <- c(y, bc$y)
   }
-
+  
   # if space-time or space-space GP
   if(length(covModels) == 2){
     nt  <- length(obs$t)
@@ -253,12 +254,17 @@ gpLogLik <- function(obs, covModels, sigma = 0, op = 0, bc = NULL, sigmat = 0){
     Ktnoise <- diag(rep(sigmat^2, length(obs$t)))
     Kxx <- (Kxx + Knoise) %x% (Ktt + Ktnoise)
     if(!is.null(bc)){
-      y <- c(obs$y, rep(bc$y, nt))
+      # each = nt (not the bare nt used previously): the Kronecker structure
+      # of Kxx blocks each bc row over its nt time repeats (bc row 1 for all
+      # nt times, then bc row 2 for all nt times, ...), matching the bc$x
+      # expansion used for Hdx below. rep(bc$y, nt) instead cycled the whole
+      # vector nt times, misaligning y against Kxx's rows whenever nbc > 1.
+      y <- c(obs$y, rep(bc$y, each = nt))
     }
   }else{
     Kxx <- Kxx + diag(sigma^2)
   }
-
+  
   # if monomial mean function
   if(op > 0){
     H <- Hmat(x, op)
@@ -311,7 +317,7 @@ gpNegLogLik <- function(theta, obs, set_params, op = 0, bc = NULL, penalty = 1e1
   pars <- set_params(theta)
   sigmat <- if(!is.null(pars$sigmat)) pars$sigmat else 0
   ll <- try(gpLogLik(obs, pars$covModels, sigma = pars$sigma, op = op,
-                      bc = bc, sigmat = sigmat),
+                     bc = bc, sigmat = sigmat),
             silent = TRUE)
   if(inherits(ll, "try-error") || !is.finite(ll)){
     return(penalty)
@@ -384,24 +390,24 @@ gpNegLogLik <- function(theta, obs, set_params, op = 0, bc = NULL, penalty = 1e1
 #' @name gpFit
 #' @export
 gpFit <- function(obs, theta0, set_params, op = 0, bc = NULL,
-                   method = "L-BFGS-B", gr = "central",
-                   grad_rel_step = 1e-4, grad_abs_step = 1e-6,
-                   ..., penalty = 1e10){
-
+                  method = "L-BFGS-B", gr = "central",
+                  grad_rel_step = 1e-4, grad_abs_step = 1e-6,
+                  ..., penalty = 1e10){
+  
   gr_fun <- NULL
   if(is.function(gr)){
     gr_fun <- gr
   }else if(identical(gr, "central")){
     gr_fun <- function(theta, obs, set_params, op = 0, bc = NULL, penalty = 1e10){
       .centralDiffGrad(gpNegLogLik, theta,
-                        obs = obs, set_params = set_params, op = op, bc = bc,
-                        penalty = penalty,
-                        rel_step = grad_rel_step, abs_step = grad_abs_step)
+                       obs = obs, set_params = set_params, op = op, bc = bc,
+                       penalty = penalty,
+                       rel_step = grad_rel_step, abs_step = grad_abs_step)
     }
   }else if(!is.null(gr)){
     stop('gr must be "central", a gradient function, or NULL')
   }
-
+  
   fit <- optim(par = theta0, fn = gpNegLogLik, gr = gr_fun,
                obs = obs, set_params = set_params, op = op, bc = bc,
                penalty = penalty, method = method, ...)
@@ -452,7 +458,7 @@ gpFit <- function(obs, theta0, set_params, op = 0, bc = NULL,
 #' @name cholfac
 #' @export
 cholfac <- function(x){
-#   return(cholnew_rcpp(x))
+  #   return(cholnew_rcpp(x))
   storage.mode(x) <- "numeric"
   return(cholfac_rcpp(x))
 }
@@ -607,26 +613,26 @@ gpSim <- function(A, L = NULL, n = 1){
 #' @name setPosTime
 #' @export
 setPosTime <-function(xy, tt, val, xystar){
-	tsteps <- c(1, 1+cumsum(diff(tt[!is.na(tt)])))
-	nxy <- nrow(xy)
-	nt <- length(tsteps)
-	if(nt != length(tt)){
-	  stop("problem with time\n")
-	}
-	# observations: x and t list only the UNIQUE locations/times (gpCond()
-	# does its own space-time expansion internally via a Kronecker
-	# product); only y needs the full nxy * nt length.
-	obs <- list()
-	obs$x <- xy
-	obs$t <- tsteps
-	obs$y <- val
-	# xstar (points at which we want to predict, at the SAME time points
-	# as the observations): likewise unexpanded.
-	xstar <- list()
-	xstar$x <- xystar
-	xstar$t <- tsteps
-
-	return(list("obs"=obs, "xstar"=xstar))
+  tsteps <- c(1, 1+cumsum(diff(tt[!is.na(tt)])))
+  nxy <- nrow(xy)
+  nt <- length(tsteps)
+  if(nt != length(tt)){
+    stop("problem with time\n")
+  }
+  # observations: x and t list only the UNIQUE locations/times (gpCond()
+  # does its own space-time expansion internally via a Kronecker
+  # product); only y needs the full nxy * nt length.
+  obs <- list()
+  obs$x <- xy
+  obs$t <- tsteps
+  obs$y <- val
+  # xstar (points at which we want to predict, at the SAME time points
+  # as the observations): likewise unexpanded.
+  xstar <- list()
+  xstar$x <- xystar
+  xstar$t <- tsteps
+  
+  return(list("obs"=obs, "xstar"=xstar))
 }
 
 #' Multi-variate Gaussian simulation
@@ -646,18 +652,18 @@ setPosTime <-function(xy, tt, val, xystar){
 #' @name mvrnorm2
 #' @export
 mvrnorm2 <- function(n, mu, Sigma){
-	p <- length(mu)
-# 	cholStatus <- try(SChol <- chol(Sigma),silent=TRUE)
-	cholStatus <- try(SChol <- cholfac_rcpp(Sigma),silent=TRUE)
-	cholError <- inherits(cholStatus, "try-error")
-	if(cholError){
-		SChol <- correctCovMat(Sigma)
-	}
-	# one length-p N(0,I) draw per column, so a single matrix
-	# multiplication transforms all n samples at once
-	std <- matrix(rnorm(p * n), nrow = p, ncol = n)
-	realz <- SChol %*% std
-	return(mu + realz)
+  p <- length(mu)
+  # 	cholStatus <- try(SChol <- chol(Sigma),silent=TRUE)
+  cholStatus <- try(SChol <- cholfac_rcpp(Sigma),silent=TRUE)
+  cholError <- inherits(cholStatus, "try-error")
+  if(cholError){
+    SChol <- correctCovMat(Sigma)
+  }
+  # one length-p N(0,I) draw per column, so a single matrix
+  # multiplication transforms all n samples at once
+  std <- matrix(rnorm(p * n), nrow = p, ncol = n)
+  realz <- SChol %*% std
+  return(mu + realz)
 }
 
 
@@ -698,53 +704,53 @@ mvrnorm2 <- function(n, mu, Sigma){
 #' @name correctCovMat
 #' @export
 correctCovMat <- function(Sigma, maxit = 100, jitter = 1e-10){
-	p <- nrow(Sigma)
-	if(any(diag(Sigma) <= 0) || anyNA(diag(Sigma))){
-		stop("Sigma must have a strictly positive diagonal (variances).")
-	}
-	d <- sqrt(diag(Sigma))
-	# work on the correlation matrix so the repair doesn't discard
-	# Sigma's original variances
-	R <- Sigma / outer(d, d)
-
-	iter <- 0
-	cholError <- TRUE
-	newR <- R
-	while(cholError && iter < maxit){
-		iter <- iter + 1
-		# compute eigenvectors/-values
-		E <- eigen(newR, symmetric = TRUE)
-		# replace negative eigenvalues by zero
-		E$values <- pmax(E$values, 0)
-		# reconstruct correlation matrix
-		newR <- E$vectors %*% diag(E$values, nrow = p) %*% t(E$vectors)
-		newR <- newR / sqrt(diag(newR) %*% t(diag(newR)))
-		cholStatus <- try(u <- chol(newR), silent = TRUE)
-		cholError <- inherits(cholStatus, "try-error")
-	}
-
-	if(cholError){
-		# eigenvalue clipping alone didn't converge to something chol()
-		# accepts within maxit iterations; try a small diagonal jitter
-		# before giving up.
-		cholStatus <- try(u <- chol(newR + diag(jitter, p)), silent = TRUE)
-		cholError <- inherits(cholStatus, "try-error")
-		if(cholError){
-			stop("correctCovMat: failed to repair Sigma into a positive ",
-			     "definite matrix after ", maxit,
-			     " eigenvalue-clipping iterations plus jitter.")
-		}
-	}
-
-	# u is upper triangular with t(u) %*% u = R (base R chol() convention).
-	# Rescale back to Sigma's original variances and convert to the
-	# lower-triangular L / L %*% t(L) = Sigma convention used elsewhere
-	# in the package: if V = u %*% diag(d) (still upper triangular, since
-	# right-multiplying by a diagonal matrix only rescales columns), then
-	# t(V) %*% V = diag(d) %*% t(u) %*% u %*% diag(d) = diag(d) %*% R %*% diag(d) = Sigma,
-	# so L = t(V) = diag(d) %*% t(u) satisfies L %*% t(L) = Sigma.
-	L <- diag(d, nrow = p) %*% t(u)
-	return(L)
+  p <- nrow(Sigma)
+  if(any(diag(Sigma) <= 0) || anyNA(diag(Sigma))){
+    stop("Sigma must have a strictly positive diagonal (variances).")
+  }
+  d <- sqrt(diag(Sigma))
+  # work on the correlation matrix so the repair doesn't discard
+  # Sigma's original variances
+  R <- Sigma / outer(d, d)
+  
+  iter <- 0
+  cholError <- TRUE
+  newR <- R
+  while(cholError && iter < maxit){
+    iter <- iter + 1
+    # compute eigenvectors/-values
+    E <- eigen(newR, symmetric = TRUE)
+    # replace negative eigenvalues by zero
+    E$values <- pmax(E$values, 0)
+    # reconstruct correlation matrix
+    newR <- E$vectors %*% diag(E$values, nrow = p) %*% t(E$vectors)
+    newR <- newR / sqrt(diag(newR) %*% t(diag(newR)))
+    cholStatus <- try(u <- chol(newR), silent = TRUE)
+    cholError <- inherits(cholStatus, "try-error")
+  }
+  
+  if(cholError){
+    # eigenvalue clipping alone didn't converge to something chol()
+    # accepts within maxit iterations; try a small diagonal jitter
+    # before giving up.
+    cholStatus <- try(u <- chol(newR + diag(jitter, p)), silent = TRUE)
+    cholError <- inherits(cholStatus, "try-error")
+    if(cholError){
+      stop("correctCovMat: failed to repair Sigma into a positive ",
+           "definite matrix after ", maxit,
+           " eigenvalue-clipping iterations plus jitter.")
+    }
+  }
+  
+  # u is upper triangular with t(u) %*% u = R (base R chol() convention).
+  # Rescale back to Sigma's original variances and convert to the
+  # lower-triangular L / L %*% t(L) = Sigma convention used elsewhere
+  # in the package: if V = u %*% diag(d) (still upper triangular, since
+  # right-multiplying by a diagonal matrix only rescales columns), then
+  # t(V) %*% V = diag(d) %*% t(u) %*% u %*% diag(d) = diag(d) %*% R %*% diag(d) = Sigma,
+  # so L = t(V) = diag(d) %*% t(u) satisfies L %*% t(L) = Sigma.
+  L <- diag(d, nrow = p) %*% t(u)
+  return(L)
 }
 
 
@@ -780,14 +786,14 @@ Hmat <- function(x,op, dx = NULL){
       return(t(sapply(0:op,function(a,x) x^a,x)))
     }else{
       HH <- t(sapply(0:op,function(a,x){
-                            ifelse(x == 0, 0, a*x^(a-1))
-                          },x))
+        ifelse(x == 0, 0, a*x^(a-1))
+      },x))
       if(length(x) == 1){
         dim(HH) <- c(op+1,1)
       }
       return(HH)
     }
-  # 2D
+    # 2D
   }else{
     if(!(op %in% c(2,5))){
       stop("Polynomial order should be 2 or 5\n")
@@ -828,21 +834,21 @@ dHmat <- function(x,op, dx=c(1,1)){
       stop("Polynomial order should be 1, 2 or 3\n")
     }
     HH <- t(sapply(0:op,function(a,x){
-                            ifelse(x == 0, 0, a*x^(a-1))
-                          },x))
+      ifelse(x == 0, 0, a*x^(a-1))
+    },x))
     if(length(x) == 1){
       dim(HH) <- c(op+1,1)
       return(HH)
     }else{
       return(HH)
     }
-  # 2D
+    # 2D
   }else{
     if(!(op %in% c(2,5))){
       stop("Polynomial order should be 2 or 5\n")
     }
     HH <- matrix(0,ncol=nrow(x), nrow=op+1)
-      dxn <- sqrt(apply(dx^2,1,sum))
+    dxn <- sqrt(apply(dx^2,1,sum))
     if(op ==2 || op == 5){
       HH[2,] <- 1*dx[,1]/dxn
       HH[3,] <- 1*dx[,2]/dxn
@@ -881,15 +887,15 @@ dHmat <- function(x,op, dx=c(1,1)){
 #' @name matGrid
 #' @export
 matGrid <- function(x,y){
-    if (!is.numeric(x) || !is.numeric(y))
-        stop("Arguments 'x' and 'y' must be numeric vectors.")
-    x <- c(x)
-    y <- c(y)
-    n <- length(x)
-    m <- length(y)
-    X <- matrix(rep(x, each = m), nrow = m, ncol = n)
-    Y <- matrix(rep(y, times = n), nrow = m, ncol = n)
-    return(list(X = X, Y = Y))
+  if (!is.numeric(x) || !is.numeric(y))
+    stop("Arguments 'x' and 'y' must be numeric vectors.")
+  x <- c(x)
+  y <- c(y)
+  n <- length(x)
+  m <- length(y)
+  X <- matrix(rep(x, each = m), nrow = m, ncol = n)
+  Y <- matrix(rep(y, times = n), nrow = m, ncol = n)
+  return(list(X = X, Y = Y))
 }
 
 #' Create a 2D coordinate grid as a two-column matrix
@@ -944,21 +950,15 @@ vecGrid <- function(x,y){
 #' @name invm
 #' @export
 invm <- function(x){
-	cholx <- try(cholfac(x),silent=TRUE)
-	if(inherits(cholx, "try-error")){
-	  cat("Error with the Cholesky decomposition\n")
-	  return(rcppeigen_invert_matrix(x))
-	}else{
-	  # cholfac() returns the LOWER factor L (L %*% t(L) = x), but
-	  # chol2inv() expects the UPPER factor U (t(U) %*% U = x, base R's
-	  # chol() convention) -- feeding it L instead silently produced a
-	  # wrong inverse. t(L) is the matching upper factor.
-	  return(chol2inv(t(cholx)))
-	}
+  cholx <- try(cholfac(x),silent=TRUE)
+  if(inherits(cholx, "try-error")){
+    cat("Error with the Cholesky decomposition\n")
+    return(rcppeigen_invert_matrix(x))
+  }else{
+    # cholfac() returns the LOWER factor L (L %*% t(L) = x), but
+    # chol2inv() expects the UPPER factor U (t(U) %*% U = x, base R's
+    # chol() convention) -- feeding it L instead silently produced a
+    # wrong inverse. t(L) is the matching upper factor.
+    return(chol2inv(t(cholx)))
+  }
 }
-
-
-
-
-
-

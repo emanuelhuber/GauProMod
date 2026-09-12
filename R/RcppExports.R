@@ -9,9 +9,6 @@ GPpredmean_rcpp <- function(K, Kstar, Kstarstar, y, H, Hstar, only_mean = FALSE)
     .Call('_GauProMod_GPpredmean_rcpp', PACKAGE = 'GauProMod', K, Kstar, Kstarstar, y, H, Hstar, only_mean)
 }
 
-#' Cross-distance between two matrices (RcppEigen version)
-NULL
-
 cholupdateL_rcpp <- function(L, V12, V22) {
     .Call('_GauProMod_cholupdateL_rcpp', PACKAGE = 'GauProMod', L, V12, V22)
 }
@@ -20,10 +17,29 @@ cholfac_rcpp <- function(A) {
     .Call('_GauProMod_cholfac_rcpp', PACKAGE = 'GauProMod', A)
 }
 
+#' Cross-distance between two matrices (RcppEigen version)
+#'
+#' Compute the Mahalanobis or Euclidean distance between every row of two matrices.
+#' Dispatches to optimized symmetric/unsymmetric core functions.
+#' @param X a matrix (or vector, handled as a matrix)
+#' @param Y a matrix (or vector) with the same number of columns as X
+#' @param M a positive semi-definite matrix for Mahalanobis distance, or NULL for Euclidean.
+#' @param use_symmetry If TRUE, assumes X=Y, skips redundant calculations, and forces the diagonal to zero.
+#' @return A distance matrix of dimension nrow(X) x nrow(Y).
 crossDist_rcpp <- function(X, Y, M = NULL, use_symmetry = FALSE) {
     .Call('_GauProMod_crossDist_rcpp', PACKAGE = 'GauProMod', X, Y, M, use_symmetry)
 }
 
+#' Fully Vectorized Sparse Cross-Distance (No Loops)
+#'
+#' Computes pairwise Euclidean or Mahalanobis distances between rows of X and Y,
+#' returning only distances <= rmax as a sparse matrix. Entirely loop-free using Eigen.
+#'
+#' @param X Numeric matrix (n x p)
+#' @param Y Numeric matrix (m x p)
+#' @param rmax Maximum distance to store. Default is \code{Inf}.
+#' @param M Optional positive semi-definite matrix for Mahalanobis distance
+#' @return Sparse distance matrix (n x m) with distances <= rmax
 crossDist_sparse <- function(X, Y, rmax, M = NULL) {
     .Call('_GauProMod_crossDist_sparse', PACKAGE = 'GauProMod', X, Y, rmax, M)
 }

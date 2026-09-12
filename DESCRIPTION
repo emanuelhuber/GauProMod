@@ -1,8 +1,8 @@
 Package: GauProMod
 Type: Package
 Title: Gaussian Process Modelling
-Version: 0.1.4
-Date: 2026-08-30
+Version: 0.1.5
+Date: 2026-09-12
 Authors@R: 
   person("Emanuel", "Huber", email = "emanuel.huber@protonmail.com",
   role = c("aut", "cre"))
@@ -28,7 +28,7 @@ Imports:
     RcppEigen,
     RcppThread (>= 2.1.0),
     Matrix
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.0.0
 Suggests:
     testthat (>= 3.0.0),
     MASS
