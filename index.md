@@ -6,11 +6,7 @@ date: 2026-10-30
 
 # Gaussian Process Modelling
 
-<!--
-<p class="message">
-  Gaussian Process Modelling
-</p>
--->
+
 
 R functions for Gaussian process (GP) modelling. The core functions are coded 
 in C++ and based on the EIGEN library (through RcppEigen)
