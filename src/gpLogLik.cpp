@@ -1,8 +1,6 @@
 // [[Rcpp::depends(RcppEigen)]]
-// [[Rcpp::depends(RcppThread)]]
 // [[Rcpp::plugins(openmp)]]
 #include <RcppEigen.h>
-#include <RcppThread.h>
 #include <cmath>   // For M_PI
 #include <limits>  // For -Inf
 

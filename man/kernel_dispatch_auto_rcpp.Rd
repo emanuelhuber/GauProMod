@@ -61,15 +61,3 @@ Derivatives are supported via the `d` argument:
 
 Symmetry enforcement (`use_symmetry = TRUE`) works for square distance matrices only.
 }
-\examples{
-# Dense Gaussian kernel
-X <- matrix(rnorm(20), 5, 4)
-W <- matrix(1, nrow(X), nrow(X))
-k <- kernel_dispatch_auto_rcpp(X, X, l=1, h=1, v=0, degree=0, c=0, d=0, W, "gaussian", TRUE)
-
-# Sparse distance-based Matern kernel
-library(Matrix)
-R <- as(Matrix(dist(matrix(rnorm(25),5,5))), "dgCMatrix")
-Wsp <- Matrix(1,5,5,sparse=TRUE)
-Ksp <- kernel_dispatch_auto_rcpp(R, R, l=1, h=1, v=1.5, degree=0, c=0, d=0, Wsp, "matern", TRUE)
-}

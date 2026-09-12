@@ -1,7 +1,6 @@
 // [[Rcpp::depends(RcppEigen)]]
 // [[Rcpp::plugins(openmp)]]
 #include <RcppEigen.h>
-#include <RcppThread.h>
 #include <RcppBessel.h>
 #include <cmath>
 #include <limits>
@@ -9,7 +8,9 @@
 #include <stdexcept>
 #include <Rmath.h> // R::bessel_k, R::gammafn
 #include <Eigen/Core>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 using namespace Rcpp;
 using namespace Eigen;
@@ -323,8 +324,13 @@ Eigen::SparseMatrix<double> kMatern_sparse(const Eigen::SparseMatrix<double> &R,
   {
     std::vector<Triplet<double>> local_triplets;
     // Heuristic reserve per-thread to reduce reallocations
-    // local_triplets.reserve(std::max(16, R.nonZeros() / (std::max(1, omp_get_max_threads()))));
-    local_triplets.reserve(std::max(Eigen::Index(16), R.nonZeros() / (std::max(Eigen::Index(1), Eigen::Index(omp_get_max_threads())))));
+    #ifdef _OPENMP
+      const Eigen::Index nthreads = static_cast<Eigen::Index>(omp_get_num_threads());
+    #else
+      const Eigen::Index nthreads = 1;
+    #endif
+    local_triplets.reserve(std::max(Eigen::Index(16), 
+                                    R.nonZeros() / (std::max(Eigen::Index(1), Eigen::Index(nthreads)))));
     
     #pragma omp for nowait
     for (int col = 0; col < R.outerSize(); ++col) {
@@ -618,17 +624,6 @@ SEXP kernel_dispatch_auto_rcpp(SEXP X_s,
 //' @param kernel Kernel type (string): `"gaussian"`, `"matern"`, `"cauchy"`, `"triangular"`, `"spherical"`, `"linear"`, `"polynomial"`
 //' @param use_symmetry Logical; if TRUE, enforces symmetry (only valid for square X/Y distance matrices)
 //' @return Kernel matrix (dense `MatrixXd` if inputs are dense, sparse `dgCMatrix` if inputs are sparse)
-//' @examples
-//' # Dense Gaussian kernel
-//' X <- matrix(rnorm(20), 5, 4)
-//' W <- matrix(1, nrow(X), nrow(X))
-//' k <- kernel_dispatch_auto_rcpp(X, X, l=1, h=1, v=0, degree=0, c=0, d=0, W, "gaussian", TRUE)
-//'
-//' # Sparse distance-based Matern kernel
-//' library(Matrix)
-//' R <- as(Matrix(dist(matrix(rnorm(25),5,5))), "dgCMatrix")
-//' Wsp <- Matrix(1,5,5,sparse=TRUE)
-//' Ksp <- kernel_dispatch_auto_rcpp(R, R, l=1, h=1, v=1.5, degree=0, c=0, d=0, Wsp, "matern", TRUE)
 // [[Rcpp::export]]
 SEXP kernel_dispatch_auto_rcpp(SEXP X_s,
                               SEXP Y_s,

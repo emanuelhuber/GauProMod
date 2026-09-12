@@ -77,17 +77,6 @@ kernel_matrix_rcpp <- function(X, Y, l, h, v, degree, c, d, W, kernel, use_symme
 #' @param kernel Kernel type (string): `"gaussian"`, `"matern"`, `"cauchy"`, `"triangular"`, `"spherical"`, `"linear"`, `"polynomial"`
 #' @param use_symmetry Logical; if TRUE, enforces symmetry (only valid for square X/Y distance matrices)
 #' @return Kernel matrix (dense `MatrixXd` if inputs are dense, sparse `dgCMatrix` if inputs are sparse)
-#' @examples
-#' # Dense Gaussian kernel
-#' X <- matrix(rnorm(20), 5, 4)
-#' W <- matrix(1, nrow(X), nrow(X))
-#' k <- kernel_dispatch_auto_rcpp(X, X, l=1, h=1, v=0, degree=0, c=0, d=0, W, "gaussian", TRUE)
-#'
-#' # Sparse distance-based Matern kernel
-#' library(Matrix)
-#' R <- as(Matrix(dist(matrix(rnorm(25),5,5))), "dgCMatrix")
-#' Wsp <- Matrix(1,5,5,sparse=TRUE)
-#' Ksp <- kernel_dispatch_auto_rcpp(R, R, l=1, h=1, v=1.5, degree=0, c=0, d=0, Wsp, "matern", TRUE)
 kernel_dispatch_auto_rcpp <- function(X_s, Y_s, l, h, v, degree, c, d, W_s, kernel, use_symmetry = FALSE) {
     .Call('_GauProMod_kernel_dispatch_auto_rcpp', PACKAGE = 'GauProMod', X_s, Y_s, l, h, v, degree, c, d, W_s, kernel, use_symmetry)
 }

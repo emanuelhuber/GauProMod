@@ -24,11 +24,11 @@ The core functions are coded in C++ and based on the EIGEN library.
 Several books!
 }
 \author{
-\strong{Maintainer}: Emanuel Huber \email{emanuel.huber@alumni.ethz.ch}
+\strong{Maintainer}: Emanuel Huber \email{emanuel.huber@protonmail.com}
 
 Authors:
 \itemize{
-  \item Emanuel Huber \email{emanuel.huber@alumni.ethz.ch}
+  \item Emanuel Huber \email{emanuel.huber@protonmail.com}
 }
 
 }

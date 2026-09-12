@@ -4,7 +4,6 @@
 // [[Rcpp::depends(RcppThread)]] // Include RcppThread for robust parallelization in R
 // [[Rcpp::plugins(openmp)]]      // Enable OpenMP for Eigen's internal routines
 #include <RcppEigen.h>
-#include <RcppThread.h>  
 
 using namespace Eigen;
 
@@ -258,7 +257,7 @@ Eigen::MatrixXd crossDist_core_sym(Eigen::MatrixXd X_mat,
  Eigen::SparseMatrix<double> crossDist_sparse(
      const Eigen::Map<Eigen::MatrixXd>& X,
      const Eigen::Map<Eigen::MatrixXd>& Y,
-     double rmax = std::numeric_limits<double>::infinity(),
+     double rmax,
      const Rcpp::Nullable<Eigen::Map<Eigen::MatrixXd>>& M = R_NilValue) {
    
    if (X.cols() != Y.cols()) Rcpp::stop("X and Y must have the same number of columns.");

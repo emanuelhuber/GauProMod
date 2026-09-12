@@ -1,7 +1,7 @@
 Package: GauProMod
 Type: Package
 Title: Gaussian Process Modelling
-Version: 0.1.3
+Version: 0.1.4
 Date: 2026-08-30
 Authors@R: 
   person("Emanuel", "Huber", email = "emanuel.huber@protonmail.com",
@@ -28,8 +28,9 @@ Imports:
     RcppEigen,
     RcppThread (>= 2.1.0),
     Matrix
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0
 Suggests:
     testthat (>= 3.0.0),
     MASS
 Config/testthat/edition: 3
+SystemRequirements: OpenMP
